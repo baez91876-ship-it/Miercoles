@@ -1,7 +1,7 @@
-const USERS_KEY = 'clara-users';
-const SESSION_KEY = 'clara-session';
-const LOCK_KEY = 'clara-login-lock';
-const MAX_ATTEMPTS = 5;
+const USERS_KEY = 'usuarios';
+const SESSION_KEY = 'session_token';
+const MAX_ATTEMPTS = 3;
+const LOCK_DURATION = 15 * 60 * 1000;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
@@ -14,6 +14,10 @@ const subtitle = document.querySelector('#auth-subtitle');
 
 function getUsers() {
     return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+}
+
+function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 function setMessage(message, success = false) {
@@ -69,20 +73,16 @@ registerForm.addEventListener('submit', (event) => {
     const result = validateRegistration();
     if (!result.valid) return;
     const users = getUsers();
-    if (users.some((user) => user.email === result.email)) {
+    if (users.some((user) => user.correo === result.email)) {
         setError('register-email', 'Ya existe una cuenta con este correo.');
         return;
     }
-    users.push({ name: result.name, email: result.email, password: result.password });
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    users.push({ nombre: result.name, correo: result.email, password: result.password, intentosFallidos: 0, bloqueadoHasta: 0 });
+    saveUsers(users);
     registerForm.reset();
     switchView('login');
     setMessage('Cuenta creada. Ya puedes iniciar sesión.', true);
 });
-
-function getLockState() {
-    return JSON.parse(localStorage.getItem(LOCK_KEY) || '{"attempts":0,"lockedUntil":0}');
-}
 
 loginForm.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -94,30 +94,34 @@ loginForm.addEventListener('submit', (event) => {
     if (!password) { setError('login-password', 'Introduce tu contraseña.'); valid = false; }
     if (!valid) return;
 
-    const lock = getLockState();
-    if (lock.lockedUntil > Date.now()) {
-        const minutes = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+    const users = getUsers();
+    const user = users.find((candidate) => candidate.correo === email);
+    if (user?.bloqueadoHasta > Date.now()) {
+        const minutes = Math.ceil((user.bloqueadoHasta - Date.now()) / 60000);
         setMessage(`Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutes} minuto(s).`);
         return;
     }
-    const user = getUsers().find((candidate) => candidate.email === email && candidate.password === password);
-    if (!user) {
-        lock.attempts += 1;
-        if (lock.attempts >= MAX_ATTEMPTS) {
-            lock.lockedUntil = Date.now() + 5 * 60 * 1000;
-            lock.attempts = 0;
-            setMessage('Demasiados intentos. Tu acceso está bloqueado durante 5 minutos.');
+    if (!user || user.password !== password) {
+        if (user) user.intentosFallidos += 1;
+        if (user?.intentosFallidos >= MAX_ATTEMPTS) {
+            user.bloqueadoHasta = Date.now() + LOCK_DURATION;
+            user.intentosFallidos = 0;
+            setMessage('Demasiados intentos. Tu cuenta está bloqueada durante 15 minutos.');
         } else {
-            const remaining = MAX_ATTEMPTS - lock.attempts;
+            const remaining = MAX_ATTEMPTS - (user?.intentosFallidos || 0);
             setMessage(`Correo o contraseña incorrectos. Te quedan ${remaining} intento(s).`);
         }
-        localStorage.setItem(LOCK_KEY, JSON.stringify(lock));
+        saveUsers(users);
         setError('login-password', 'No pudimos validar tus datos.');
         return;
     }
-    localStorage.removeItem(LOCK_KEY);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ email: user.email, name: user.name, createdAt: Date.now() }));
-    showDashboard(user.name);
+    user.intentosFallidos = 0;
+    user.bloqueadoHasta = 0;
+    saveUsers(users);
+    const token = btoa(`${user.correo}${Date.now()}`);
+    localStorage.setItem(SESSION_KEY, token);
+    localStorage.setItem('session_user', JSON.stringify({ correo: user.correo, nombre: user.nombre }));
+    showDashboard(user.nombre);
 });
 
 function showDashboard(name) {
@@ -132,6 +136,7 @@ function showDashboard(name) {
 
 function logout() {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('session_user');
     dashboard.classList.add('hidden');
     document.querySelector('.auth-tabs').classList.remove('hidden');
     document.querySelector('.auth-heading').classList.remove('hidden');
@@ -142,5 +147,5 @@ document.querySelectorAll('.auth-tab').forEach((tab) => tab.addEventListener('cl
 document.querySelector('[data-action="logout"]').addEventListener('click', logout);
 document.querySelector('[data-action="forgot"]').addEventListener('click', () => setMessage('Para recuperar tu acceso, contacta con soporte.'));
 
-const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-if (session) showDashboard(session.name);
+const session = JSON.parse(localStorage.getItem('session_user') || 'null');
+if (session && localStorage.getItem(SESSION_KEY)) showDashboard(session.nombre);
