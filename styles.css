@@ -1,13 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --ink: #172321;
-  --muted: #697875;
-  --paper: #f4f0e8;
-  --line: #d8d4c9;
-  --accent: #ec6f4d;
-  --mint: #b9d4c5;
-  --dark-mint: #31564d;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --paper: #f8fafc;
+  --surface: #ffffff;
+  --line: #cbd5e1;
+  --primary: #2563eb;
+  --primary-dark: #1e3a8a;
+  --success: #16a34a;
+  --error: #dc2626;
+  --warning: #f59e0b;
 }
 
 * {
@@ -43,7 +46,7 @@ input {
   min-height: 100vh;
   padding: clamp(40px, 8vw, 110px);
   overflow: hidden;
-  background: var(--mint);
+  background: var(--primary);
 }
 
 .brand-panel::after {
@@ -53,9 +56,9 @@ input {
   bottom: -120px;
   width: 380px;
   height: 380px;
-  border: 1px solid rgba(49, 86, 77, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  box-shadow: 0 0 0 38px rgba(49, 86, 77, 0.04), 0 0 0 76px rgba(49, 86, 77, 0.04);
+  box-shadow: 0 0 0 38px rgba(255, 255, 255, 0.08), 0 0 0 76px rgba(255, 255, 255, 0.06);
 }
 
 .brand-mark {
@@ -64,15 +67,16 @@ input {
   width: 44px;
   height: 44px;
   margin-bottom: auto;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--surface);
   border-radius: 50%;
+  color: var(--surface);
   font-size: 22px;
   font-weight: 800;
 }
 
 .eyebrow {
   margin: 0 0 18px;
-  color: var(--dark-mint);
+  color: var(--primary-dark);
   font: 500 11px 'DM Mono', monospace;
   letter-spacing: 0.16em;
 }
@@ -91,17 +95,18 @@ h1 {
   line-height: 0.98;
   letter-spacing: -0.055em;
   font-weight: 700;
+  color: var(--surface);
 }
 
 h1 em {
-  color: var(--accent);
+  color: var(--warning);
   font-style: normal;
 }
 
 .brand-copy {
   max-width: 340px;
   margin-bottom: 42px;
-  color: #46645b;
+  color: var(--surface);
   font-size: 16px;
   line-height: 1.7;
 }
@@ -114,17 +119,17 @@ h1 em {
 .brand-detail span {
   width: 42px;
   height: 4px;
-  background: var(--dark-mint);
+  background: var(--surface);
 }
 
 .brand-detail span:nth-child(2) {
   width: 18px;
-  background: var(--accent);
+  background: var(--warning);
 }
 
 .brand-note {
   margin: auto 0 0;
-  color: #54736a;
+  color: var(--surface);
   font: 11px 'DM Mono', monospace;
   letter-spacing: 0.12em;
 }
@@ -134,7 +139,7 @@ h1 em {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #fbfaf6;
+  background: var(--surface);
 }
 
 .auth-topline,
@@ -149,7 +154,7 @@ h1 em {
 }
 
 .secure-label {
-  color: #638b75;
+  color: var(--success);
 }
 
 .auth-content {
@@ -159,7 +164,7 @@ h1 em {
 }
 
 .auth-heading .eyebrow {
-  color: var(--accent);
+  color: var(--primary);
 }
 
 .auth-heading h2 {
@@ -185,7 +190,7 @@ h1 em {
   padding: 0 0 14px;
   border: 0;
   background: none;
-  color: #9aa29e;
+  color: var(--muted);
   cursor: pointer;
   font-size: 14px;
 }
@@ -202,7 +207,7 @@ h1 em {
   bottom: -1px;
   left: 0;
   height: 2px;
-  background: var(--accent);
+  background: var(--primary);
 }
 
 /* Messages and forms */
@@ -216,13 +221,13 @@ h1 em {
 .global-message:not(:empty) {
   margin-bottom: 18px;
   padding: 12px 14px;
-  background: #fbe4dc;
-  color: #a0442d;
+  background: var(--error);
+  color: var(--surface);
 }
 
 .global-message.success:not(:empty) {
-  background: #e1f0e6;
-  color: #286047;
+  background: var(--success);
+  color: var(--surface);
 }
 
 .auth-form {
@@ -236,7 +241,7 @@ h1 em {
 }
 
 .field label {
-  color: #465651;
+  color: var(--ink);
   font-size: 12px;
   font-weight: 700;
 }
@@ -251,7 +256,7 @@ h1 em {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: var(--primary);
   cursor: pointer;
   font-size: 11px;
 }
@@ -264,7 +269,7 @@ h1 em {
   width: 100%;
   padding: 13px 44px 13px 0;
   border: 0;
-  border-bottom: 1px solid #bfc6bd;
+  border-bottom: 1px solid var(--line);
   outline: none;
   background: transparent;
   color: var(--ink);
@@ -288,7 +293,7 @@ h1 em {
   width: 100%;
   padding: 13px 0;
   border: 0;
-  border-bottom: 1px solid #bfc6bd;
+  border-bottom: 1px solid var(--line);
   outline: none;
   background: transparent;
   color: var(--ink);
@@ -297,25 +302,25 @@ h1 em {
 
 .field input:focus,
 .password-field input:focus {
-  border-color: var(--accent);
+  border-color: var(--primary);
 }
 
 .field input.invalid {
-  border-color: #cf604a;
+  border-color: var(--error);
 }
 
 .field input::placeholder {
-  color: #aeb5af;
+  color: var(--muted);
 }
 
 .field-error {
   min-height: 14px;
-  color: #c6573f;
+  color: var(--error);
   font-size: 11px;
 }
 
 .field-hint {
-  color: #87948e;
+  color: var(--muted);
   font-size: 10px;
 }
 
@@ -323,13 +328,13 @@ h1 em {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: #68766f;
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
 }
 
 .terms input {
-  accent-color: var(--accent);
+  accent-color: var(--primary);
   margin-top: 2px;
 }
 
@@ -357,8 +362,8 @@ h1 em {
 }
 
 .primary-button:hover {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--primary);
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -391,8 +396,8 @@ h1 em {
   height: 54px;
   margin: 0 auto 22px;
   border-radius: 50%;
-  background: #dcefe3;
-  color: #286047;
+  background: var(--success);
+  color: var(--surface);
   font-size: 26px;
 }
 
@@ -407,10 +412,10 @@ h1 em {
 
 .auth-footer {
   margin-top: auto;
-  border-top: 1px solid #ebe8df;
+  border-top: 1px solid var(--line);
   padding-top: 20px;
   padding-bottom: 20px;
-  color: #98a09a;
+  color: var(--muted);
   letter-spacing: 0.04em;
 }
 
