@@ -1,12 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <title>Document</title>
+    <script src="script.js" defer></script>
+    <title>Clara | Acceso</title>
 </head>
 <body>
-
+    <main class="app-shell">
+        <section class="brand-panel">
+            <div class="brand-mark">C</div>
+            <p class="eyebrow">ESPACIO PERSONAL</p>
+            <h1>Tu trabajo,<br><em>en claro.</em></h1>
+            <p class="brand-copy">Gestiona tus proyectos y vuelve a lo importante desde un solo lugar.</p>
+            <div class="brand-detail"><span></span><span></span><span></span></div>
+            <p class="brand-note">CLARA / 2026</p>
+        </section>
+        <section class="auth-panel">
+            <div class="auth-topline"><span>BIENVENIDO</span><span class="secure-label">● CONEXIÓN SEGURA</span></div>
+            <div class="auth-content">
+                <div class="auth-heading"><p class="eyebrow">CUENTA</p><h2 id="auth-title">Inicia sesión</h2><p id="auth-subtitle">Continúa donde lo dejaste.</p></div>
+                <div class="auth-tabs" role="tablist"><button class="auth-tab active" type="button" role="tab" aria-selected="true" data-view="login">Iniciar sesión</button><button class="auth-tab" type="button" role="tab" aria-selected="false" data-view="register">Crear cuenta</button></div>
+                <div id="global-message" class="global-message" role="status" aria-live="polite"></div>
+                <form id="login-form" class="auth-form" novalidate>
+                    <div class="field"><label for="login-email">Correo electrónico</label><input id="login-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com"><small class="field-error" data-error-for="login-email"></small></div>
+                    <div class="field"><div class="label-row"><label for="login-password">Contraseña</label><button class="text-button" type="button" data-action="forgot">¿La olvidaste?</button></div><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••"><small class="field-error" data-error-for="login-password"></small></div>
+                    <button class="primary-button" type="submit">Entrar <span>→</span></button>
+                </form>
+                <form id="register-form" class="auth-form hidden" novalidate>
+                    <div class="field"><label for="register-name">Nombre completo</label><input id="register-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre"><small class="field-error" data-error-for="register-name"></small></div>
+                    <div class="field"><label for="register-email">Correo electrónico</label><input id="register-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com"><small class="field-error" data-error-for="register-email"></small></div>
+                    <div class="field"><label for="register-password">Contraseña</label><input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crea una contraseña"><small class="field-error" data-error-for="register-password"></small><small class="field-hint">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</small></div>
+                    <div class="field"><label for="register-confirm">Confirmar contraseña</label><input id="register-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><small class="field-error" data-error-for="register-confirm"></small></div>
+                    <label class="terms"><input id="register-terms" type="checkbox"><span>Acepto los términos y condiciones.</span></label><small class="field-error terms-error" data-error-for="register-terms"></small>
+                    <button class="primary-button" type="submit">Crear mi cuenta <span>→</span></button>
+                </form>
+                <div id="dashboard" class="dashboard hidden"><div class="dashboard-icon">✓</div><p class="eyebrow">SESIÓN ACTIVA</p><h3 id="dashboard-name">Hola</h3><p>Tu espacio está listo para continuar.</p><button class="secondary-button" type="button" data-action="logout">Cerrar sesión</button></div>
+            </div>
+            <footer class="auth-footer"><span>© 2026 Clara</span><span>Privacidad&nbsp;&nbsp; Términos</span></footer>
+        </section>
+    </main>
 </body>
 </html>
