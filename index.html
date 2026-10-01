@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <script src="script.js" defer></script>
-    <title>Clara | Acceso</title>
+    <title>Hotel Clara | Acceso</title>
   </head>
   <body>
-    <main class="app-shell">
-      <aside class="brand-panel" aria-label="Introducción de la aplicación">
+    <main class="app-shell" id="auth-screen">
+      <aside class="brand-panel" aria-label="Presentación del hotel">
         <div class="brand-mark">C</div>
-        <p class="eyebrow">ESPACIO PERSONAL</p>
-        <h1>Tu trabajo,<br /><em>en claro.</em></h1>
-        <p class="brand-copy">Gestiona tus proyectos y vuelve a lo importante desde un solo lugar.</p>
+        <p class="eyebrow">HOTEL CLARA · RESERVAS</p>
+        <h1>Tu estancia,<br /><em>a tu medida.</em></h1>
+        <p class="brand-copy">Consulta disponibilidad y reserva tu habitación en pocos pasos.</p>
         <div class="brand-detail" aria-hidden="true">
           <span></span>
           <span></span>
           <span></span>
         </div>
-        <p class="brand-note">CLARA / 2026</p>
+        <p class="brand-note">HOTEL CLARA / 2026</p>
       </aside>
 
       <section class="auth-panel" aria-label="Acceso a la cuenta">
@@ -32,7 +32,7 @@
           <div class="auth-heading">
             <p class="eyebrow">CUENTA</p>
             <h2 id="auth-title">Inicia sesión</h2>
-            <p id="auth-subtitle">Continúa donde lo dejaste.</p>
+            <p id="auth-subtitle">Accede para gestionar tus reservas.</p>
           </div>
 
           <div class="auth-tabs" role="tablist" aria-label="Opciones de acceso">
@@ -109,20 +109,70 @@
             <button class="primary-button" type="submit">Crear mi cuenta <span>→</span></button>
           </form>
 
-          <div id="dashboard" class="dashboard hidden">
-            <div class="dashboard-icon">✓</div>
-            <p class="eyebrow">SESIÓN ACTIVA</p>
-            <h3 id="dashboard-name">Hola</h3>
-            <p>Tu espacio está listo para continuar.</p>
-            <button class="secondary-button" type="button" data-action="logout">Cerrar sesión</button>
-          </div>
         </div>
 
         <footer class="auth-footer">
-          <span>© 2026 Clara</span>
+          <span>© 2026 Hotel Clara</span>
           <span>Privacidad&nbsp;&nbsp; Términos</span>
         </footer>
       </section>
+    </main>
+
+    <main id="booking-screen" class="booking hidden" aria-label="Reservas de habitaciones">
+      <header class="booking-header">
+        <div class="booking-brand">
+          <span class="brand-mark compact">C</span>
+          <span>
+            <strong>Hotel Clara</strong>
+            <small>Reservas de habitaciones</small>
+          </span>
+        </div>
+        <div class="booking-user">
+          <span id="booking-user-name"></span>
+          <button class="ghost-button" type="button" data-action="logout">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <section class="booking-search" aria-label="Buscar disponibilidad">
+        <p class="eyebrow">DISPONIBILIDAD</p>
+        <h2>Encuentra tu habitación</h2>
+        <form id="search-form" class="search-form" novalidate>
+          <div class="field">
+            <label for="search-checkin">Entrada *</label>
+            <input id="search-checkin" name="checkin" type="date" required />
+          </div>
+          <div class="field">
+            <label for="search-checkout">Salida *</label>
+            <input id="search-checkout" name="checkout" type="date" required />
+          </div>
+          <div class="field">
+            <label for="search-guests">Huéspedes</label>
+            <select id="search-guests" name="guests">
+              <option value="1">1 huésped</option>
+              <option value="2" selected>2 huéspedes</option>
+              <option value="3">3 huéspedes</option>
+              <option value="4">4 huéspedes</option>
+            </select>
+          </div>
+          <button class="primary-button search-button" type="submit">Buscar <span>→</span></button>
+        </form>
+        <div id="booking-message" class="global-message" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="booking-section" aria-label="Habitaciones">
+        <h3>Habitaciones</h3>
+        <div id="room-list" class="room-grid"></div>
+      </section>
+
+      <section class="booking-section" aria-label="Mis reservas">
+        <div class="section-head">
+          <h3>Mis reservas <span id="reservation-count" class="count-badge">0</span></h3>
+          <button id="clear-reservations" class="ghost-button danger hidden" type="button">Eliminar todas</button>
+        </div>
+        <div id="reservation-list" class="reservation-list"></div>
+      </section>
+
+      <footer class="booking-footer">© 2026 Hotel Clara · Reservas guardadas en este navegador</footer>
     </main>
   </body>
 </html>
