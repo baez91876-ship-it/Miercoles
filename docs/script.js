@@ -707,4 +707,3 @@ function initializeSession() {
 
 bindEvents();
 initializeSession();
-
