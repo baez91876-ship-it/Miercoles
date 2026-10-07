@@ -28,7 +28,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T06 | Crear endpoint `POST /api/auth/login` | Backend | Backend |
 | T07 | Validar credenciales en el servidor | Backend | Backend |
 | T08 | Consultar usuario en MongoDB | Base de datos | Backend |
-| T09 | Implementar manejo de sesión/token | Backend | Backend |
+| T09 | Implementar manejo de sesión/token ✅ | Backend | Backend |
 | T10 | Mostrar mensajes de error y éxito | Frontend | Frontend |
 | T11 | Probar login exitoso | QA | Integración/DevOps |
 | T12 | Probar credenciales incorrectas | QA | Integración/DevOps |
@@ -41,13 +41,13 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 
 | Elemento | Color |
 |---|---|
-| Azul principal | `#2563EB` |
-| Azul oscuro | `#1E3A8A` |
-| Fondo | `#F8FAFC` |
-| Blanco | `#FFFFFF` |
-| Éxito | `#16A34A` |
-| Error | `#DC2626` |
-| Texto | `#1E293B` |
+| Azul principal | `#2563EB` ✅ |
+| Azul oscuro | `#1E3A8A` ✅ |
+| Fondo | `#F8FAFC` ✅ |
+| Blanco | `#FFFFFF` ✅ |
+| Éxito | `#16A34A` ✅ |
+| Error | `#DC2626` ✅ |
+| Texto | `#1E293B` ✅ |
 
 ### Elementos de pantalla
 
@@ -96,7 +96,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | ID | Tarea | Área | Responsable |
 |---|---|---|---|
 | T01 | Diseñar wireframe de Registro | UI/UX | Frontend |
-| T02 | Definir campos del formulario | UI/UX | Frontend |
+| T02 | Definir campos del formulario ✅ | UI/UX | Frontend |
 | T03 | Crear formulario ✅ | Frontend | Frontend |
 | T04 | Validar nombre ✅ | Frontend | Frontend |
 | T05 | Validar correo ✅ | Frontend | Frontend |
@@ -392,13 +392,13 @@ El usuario debe poder identificar fácilmente:
 - Buscador
 - Filtro por fecha
 - Filtro por estado
-- Tabla/listado
-- Servicio
-- Fecha
+- Tabla/listado ✅
+- Servicio (habitación) ✅
+- Fecha ✅
 - Hora
 - Usuario
-- Estado
-- Acciones
+- Estado ✅
+- Acciones ✅
 - Vista detalle
 
 ## Estados
@@ -408,7 +408,7 @@ El usuario debe poder identificar fácilmente:
 | Confirmada | Verde `#16A34A` |
 | Pendiente | Amarillo `#F59E0B` |
 | Cancelada | Rojo `#DC2626` |
-| Finalizada | Gris/Azul |
+| Finalizada | Gris/Azul ✅ |
 
 ---
 
@@ -438,13 +438,13 @@ El usuario debe poder identificar fácilmente:
 
 Formulario:
 
-- Servicio
-- Fecha
+- Servicio (habitación) ✅
+- Fecha ✅
 - Hora
 - Observaciones
 - Estado, si corresponde
-- Botón **Guardar cambios**
-- Botón **Cancelar**
+- Botón **Guardar cambios** ✅
+- Botón **Cancelar** (Descartar edición) ✅
 
 ### Confirmación
 
@@ -533,11 +533,11 @@ Para que los tres aprendices trabajen sobre una misma aplicación, se recomienda
 
 Debe contener:
 
-- Logo/nombre de aplicación
-- Nombre de usuario
+- Logo/nombre de aplicación ✅
+- Nombre de usuario ✅
 - Avatar opcional
 - Menú de usuario
-- Cerrar sesión
+- Cerrar sesión ✅
 
 ## Menú lateral
 
@@ -559,21 +559,21 @@ Se recomienda mantener una convención uniforme:
 | Acción principal | Azul |
 | Confirmar/activar | Verde |
 | Advertencia | Amarillo |
-| Eliminar/cancelar | Rojo |
-| Cancelar/volver | Gris |
+| Eliminar/cancelar | Rojo ✅ |
+| Cancelar/volver | Gris ✅ |
 
 ## Formularios
 
 Todos deberían contemplar:
 
-- Label
-- Input
+- Label ✅
+- Input ✅
 - Placeholder
-- Validación
-- Mensaje de error
+- Validación ✅
+- Mensaje de error ✅
 - Indicador de campo obligatorio `*`
-- Botón Guardar
-- Botón Cancelar
+- Botón Guardar ✅
+- Botón Cancelar ✅
 
 ## Tablas
 
@@ -581,12 +581,12 @@ Las tablas deberían contemplar, cuando corresponda:
 
 - Encabezados
 - Datos
-- Estado
-- Acciones
+- Estado ✅
+- Acciones ✅
 - Búsqueda
 - Filtros
 - Paginación
-- Mensaje cuando no existan registros
+- Mensaje cuando no existan registros ✅
 
 ---
 
