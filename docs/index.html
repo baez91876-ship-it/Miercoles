@@ -134,10 +134,47 @@
         </div>
         <div class="booking-user">
           <span id="booking-user-name"></span>
-          <button class="ghost-button" type="button" data-action="logout">Cerrar sesión</button>
+          <details class="user-menu">
+            <summary>Mi cuenta</summary>
+            <p id="account-role"></p>
+            <button class="ghost-button" type="button" data-action="logout">Cerrar sesión</button>
+          </details>
         </div>
       </header>
 
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button type="button" data-page="dashboard" aria-current="page">Dashboard</button>
+        <button type="button" data-page="reservations">Reservas</button>
+        <button type="button" data-page="users" class="hidden" id="users-nav">Usuarios</button>
+        <button type="button" data-page="services" class="hidden" id="services-nav">Servicios</button>
+      </nav>
+      <div id="app-message" class="global-message" role="status" aria-live="polite"></div>
+
+      <section id="dashboard-page" class="app-page" aria-labelledby="dashboard-title">
+        <p class="eyebrow">PANEL PRINCIPAL</p>
+        <h2 id="dashboard-title">Dashboard</h2>
+        <p id="dashboard-greeting"></p>
+        <p class="local-notice">Datos de este navegador. Sin conexión a un servidor.</p>
+        <div class="stat-grid">
+          <article class="stat-card hidden" id="users-stat-card"><h3>Usuarios registrados</h3><strong id="stat-users">0</strong></article>
+          <article class="stat-card"><h3>Servicios disponibles</h3><strong id="stat-services">0</strong><small>Servicios activos; disponibilidad según fechas</small></article>
+          <article class="stat-card"><h3 id="stat-reservations-label">Mis reservas</h3><strong id="stat-reservations">0</strong></article>
+        </div>
+        <section class="booking-section" aria-labelledby="quick-actions-title">
+          <h3 id="quick-actions-title">Acciones rápidas</h3>
+          <div class="quick-actions">
+            <button class="room-button" type="button" data-page="reservations">Reservar habitación</button>
+            <button class="ghost-button hidden" id="manage-users-action" type="button" data-page="users">Gestionar usuarios</button>
+            <button class="ghost-button hidden" id="manage-services-action" type="button" data-page="services">Gestionar servicios</button>
+          </div>
+        </section>
+        <section class="booking-section" aria-labelledby="recent-title">
+          <h3 id="recent-title">Reservas recientes</h3>
+          <div id="recent-reservations" class="reservation-list"></div>
+        </section>
+      </section>
+
+      <div id="reservations-page" class="app-page hidden">
       <section class="booking-search" aria-label="Buscar disponibilidad">
         <p class="eyebrow">DISPONIBILIDAD</p>
         <h2>Encuentra tu habitación</h2>
@@ -169,15 +206,77 @@
         <div id="room-list" class="room-grid"></div>
       </section>
 
-      <section class="booking-section" aria-label="Mis reservas">
+      <section id="reservations-section" class="booking-section" aria-label="Mis reservas">
         <div class="section-head">
-          <h3>Mis reservas <span id="reservation-count" class="count-badge">0</span></h3>
+          <h3 id="reservations-title">Mis reservas <span id="reservation-count" class="count-badge">0</span></h3>
           <button id="clear-reservations" class="ghost-button danger hidden" type="button">Eliminar todas</button>
         </div>
         <div id="reservation-list" class="reservation-list"></div>
       </section>
+      </div>
 
-      <footer class="booking-footer">© 2026 Hotel Clara · Reservas guardadas en este navegador</footer>
+      <section id="users-page" class="app-page hidden" aria-labelledby="users-title">
+        <div class="section-head">
+          <h2 id="users-title">Gestión de usuarios</h2>
+          <button id="new-user" class="room-button" type="button">+ Nuevo usuario</button>
+        </div>
+        <p class="local-notice">Administración local de demostración. Los roles no sustituyen la autorización de un servidor.</p>
+        <div id="users-message" class="global-message" role="status" aria-live="polite"></div>
+        <form id="user-form" class="user-editor hidden" novalidate aria-labelledby="user-form-title">
+          <h3 id="user-form-title">Nuevo usuario</h3>
+          <div class="field"><label for="user-name">Nombre completo *</label><input id="user-name" name="nombre" autocomplete="name" required /><small class="field-error" data-error-for="user-name"></small></div>
+          <div class="field"><label for="user-email">Correo electrónico *</label><input id="user-email" name="correo" type="email" autocomplete="email" required /><small class="field-error" data-error-for="user-email"></small></div>
+          <div class="field"><label for="user-password">Contraseña</label><div class="password-field"><input id="user-password" name="password" type="password" autocomplete="new-password" aria-describedby="user-password-hint" /><button class="password-toggle" type="button" aria-label="Mostrar contraseña" data-target="user-password">👁</button></div><small id="user-password-hint" class="field-hint">Obligatoria al crear. Al editar, déjala vacía para conservarla. Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</small><small class="field-error" data-error-for="user-password"></small></div>
+          <div class="field"><label for="user-role">Rol</label><select id="user-role" name="rol"><option value="usuario">Usuario</option><option value="administrador">Administrador</option></select></div>
+          <div class="field"><label for="user-status">Estado</label><select id="user-status" name="estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div>
+          <div class="quick-actions"><button class="room-button" type="submit">Guardar usuario</button><button id="cancel-user-edit" class="ghost-button" type="button">Cancelar</button></div>
+        </form>
+        <div class="user-filters">
+          <div class="field"><label for="users-search">Buscar por nombre o correo</label><input id="users-search" type="search" placeholder="Buscar usuarios" /></div>
+          <div class="field"><label for="users-role-filter">Filtrar por rol</label><select id="users-role-filter"><option value="">Todos los roles</option><option value="administrador">Administrador</option><option value="usuario">Usuario</option></select></div>
+          <div class="field"><label for="users-status-filter">Filtrar por estado</label><select id="users-status-filter"><option value="">Todos los estados</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div>
+        </div>
+        <div class="table-scroll" role="region" aria-label="Tabla de usuarios" tabindex="0">
+          <table class="users-table"><caption>Usuarios guardados en este navegador</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Correo</th><th scope="col">Rol</th><th scope="col">Estado</th><th scope="col">Fecha de registro</th><th scope="col">Acciones</th></tr></thead><tbody id="users-table-body"></tbody></table>
+        </div>
+        <p id="users-empty" class="empty-state hidden">No hay usuarios que coincidan con los filtros.</p>
+        <nav class="pagination" aria-label="Paginación de usuarios"><button id="users-previous" class="ghost-button" type="button">Anterior</button><span id="users-page-info" role="status"></span><button id="users-next" class="ghost-button" type="button">Siguiente</button></nav>
+        <dialog id="delete-user-dialog" aria-labelledby="delete-user-title" aria-describedby="delete-user-description">
+          <h3 id="delete-user-title">Eliminar usuario</h3>
+          <p id="delete-user-description"></p>
+          <div class="quick-actions"><button id="confirm-user-delete" class="ghost-button danger" type="button">Confirmar eliminación</button><button id="abort-user-delete" class="ghost-button" type="button" autofocus>Cancelar</button></div>
+        </dialog>
+      </section>
+
+      <section id="services-page" class="app-page hidden" aria-labelledby="services-title">
+        <div class="section-head"><h2 id="services-title">Gestión de servicios</h2><button id="new-service" class="room-button" type="button">+ Nuevo servicio</button></div>
+        <p class="local-notice">Catálogo local de habitaciones. Precio por noche y estancia mínima en noches. Sin API ni backend.</p>
+        <div id="services-message" class="global-message" role="status" aria-live="polite"></div>
+        <form id="service-form" class="user-editor hidden" novalidate aria-labelledby="service-form-title">
+          <h3 id="service-form-title">Nuevo servicio</h3>
+          <div class="field"><label for="service-name">Nombre *</label><input id="service-name" name="nombre" maxlength="100" required /><small class="field-error" data-error-for="service-name"></small></div>
+          <div class="field"><label for="service-description">Descripción *</label><textarea id="service-description" name="detalle" maxlength="500" rows="3" required></textarea><small class="field-error" data-error-for="service-description"></small></div>
+          <div class="service-fields">
+            <div class="field"><label for="service-price">Precio por noche *</label><input id="service-price" name="precio" type="number" min="0.01" max="1000000" step="0.01" required /><small class="field-error" data-error-for="service-price"></small></div>
+            <div class="field"><label for="service-duration">Duración mínima (noches) *</label><input id="service-duration" name="duracion" type="number" min="1" max="365" step="1" required /><small class="field-error" data-error-for="service-duration"></small></div>
+            <div class="field"><label for="service-capacity">Capacidad (huéspedes) *</label><input id="service-capacity" name="capacidad" type="number" min="1" max="4" step="1" required /><small class="field-error" data-error-for="service-capacity"></small></div>
+          </div>
+          <div class="field"><label for="service-category">Categoría *</label><input id="service-category" name="categoria" maxlength="60" placeholder="Habitación, suite..." required /><small class="field-error" data-error-for="service-category"></small></div>
+          <div class="field"><label for="service-status">Estado</label><select id="service-status" name="estado"><option value="disponible">Disponible</option><option value="inactivo">Inactivo</option></select></div>
+          <div class="field"><label for="service-image">Imagen opcional</label><input id="service-image" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="service-image-hint" /><small id="service-image-hint" class="field-hint">PNG, JPEG o WebP hasta 1 MB; guardada solo en este navegador.</small><small class="field-error" data-error-for="service-image"></small><img id="service-image-preview" class="service-image hidden" alt="Vista previa del servicio" /><button id="remove-service-image" class="ghost-button" type="button">Quitar imagen</button></div>
+          <div class="quick-actions"><button class="room-button" type="submit">Guardar servicio</button><button id="cancel-service-edit" class="ghost-button" type="button">Cancelar</button></div>
+        </form>
+        <div class="user-filters">
+          <div class="field"><label for="services-search">Buscar servicios</label><input id="services-search" type="search" placeholder="Nombre, descripción o categoría" /></div>
+          <div class="field"><label for="services-status-filter">Estado del servicio</label><select id="services-status-filter"><option value="">Todos los estados</option><option value="disponible">Disponible</option><option value="inactivo">Inactivo</option></select></div>
+        </div>
+        <div id="service-list" class="room-grid"></div>
+        <dialog id="delete-service-dialog" aria-labelledby="delete-service-title" aria-describedby="delete-service-description">
+          <h3 id="delete-service-title">Eliminar servicio</h3><p id="delete-service-description"></p>
+          <div class="quick-actions"><button id="confirm-service-delete" class="ghost-button danger" type="button">Confirmar eliminación</button><button id="abort-service-delete" class="ghost-button" type="button" autofocus>Cancelar</button></div>
+        </dialog>
+      </section>
+      <footer class="booking-footer">© 2026 Hotel Clara · Datos guardados en este navegador</footer>
     </main>
   </body>
 </html>
