@@ -2,6 +2,41 @@
 
 > ✅ indica que la página actual de Hotel Clara cumple el requisito de forma visible o en su lógica del navegador. No implica que exista implementación en servidor, base de datos o pruebas automatizadas.
 
+> Las tareas QA con ✅ tienen evidencia en la suite Playwright de `tests/`. Las marcas no certifican MongoDB ni endpoints: la aplicación es estática y usa `localStorage`. Un requisito parcial o una prueba fallida queda sin check.
+
+## Resultado de pruebas — 7 de octubre de 2026
+
+Se ejecutaron **37 pruebas E2E en Chrome**, tanto con servidor local como contra
+la página publicada en GitHub Pages. En cada ejecución: **35 aprobadas, 2 fallidas,
+0 omitidas**, código de salida **1**. El resultado global **NO está aprobado**.
+
+| Área comprobada | Resultado |
+|---|---|
+| Registro, teléfono opcional, campos inválidos, términos y correo duplicado | ✅ |
+| Login correcto/incorrecto, bloqueo, expiración, recarga y cierre de sesión | ✅ |
+| Crear reserva, total, persistencia, capacidad y prevención de solapamiento | ✅ |
+| Consultar reservas propias y estados Próxima / En curso / Finalizada | ✅ |
+| Editar habitación y fechas válidas, recalcular precio y descartar cambios | ✅ |
+| Rechazar edición con fechas incompletas, orden incorrecto, exceso de huéspedes o habitación ocupada | ✅ |
+| Rechazar edición con entrada en el pasado | Falló: permite guardar una fecha anterior a hoy |
+| Eliminar con confirmación, abortar y liberar disponibilidad | ✅ (elimina el registro; no lo marca Cancelada) |
+| Eliminar todas las reservas propias sin borrar las de otra cuenta | ✅ |
+| Recursos, teléfono, teclado, colores de éxito/error y token de paleta informativa | ✅ |
+| Login y reservas sin desbordamiento a 320, 390, 1024 y 1440 px | ✅ |
+| Login sin desbordamiento a 768 px | Falló: el contenido ocupa 790 px; no se continuó con reservas a ese ancho |
+
+Las pruebas están en [tests/](./tests/); se repiten con `npm test`. El reporte
+HTML queda en `playwright-report/index.html`, y los resultados JSON, capturas y
+trazas de fallos en `test-results/`. Son archivos locales ignorados por Git.
+
+**Límites:** no se verificaron otros navegadores, dispositivos físicos ni
+conformidad completa de accesibilidad. No existen backend, MongoDB, CRUD
+administrativo, buscador/filtros/paginación de reservas, modal de cancelación ni
+estado Cancelada persistente. La sesión funciona solo en el navegador, no en un
+servidor. Los colores de la paleta declarados en CSS no prueban que exista una
+pantalla que utilice cada estado. No se cambiaron funcionalidades para ocultar
+los dos fallos.
+
 ## Objetivo
 
 Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Stack en tareas de UI/UX, Frontend, Backend, Base de Datos, validaciones, pruebas y Git/GitHub.
@@ -28,10 +63,10 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T06 | Crear endpoint `POST /api/auth/login` | Backend | Backend |
 | T07 | Validar credenciales en el servidor | Backend | Backend |
 | T08 | Consultar usuario en MongoDB | Base de datos | Backend |
-| T09 | Implementar manejo de sesión/token ✅ | Backend | Backend |
+| T09 | Implementar manejo de sesión/token | Backend | Backend |
 | T10 | Mostrar mensajes de error y éxito ✅ | Frontend | Frontend |
-| T11 | Probar login exitoso | QA | Integración/DevOps |
-| T12 | Probar credenciales incorrectas | QA | Integración/DevOps |
+| T11 | Probar login exitoso ✅ | QA | Integración/DevOps |
+| T12 | Probar credenciales incorrectas ✅ | QA | Integración/DevOps |
 | T13 | Crear Pull Request | Git/GitHub | Todos |
 | T14 | Realizar Code Review | Git/GitHub | Todos |
 
@@ -61,7 +96,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 - Enlace **¿Olvidaste tu contraseña?**, si se implementa ✅
 - Mensajes de validación ✅
 - Mensajes de error ✅
-- Diseño responsive ✅
+- Diseño responsive (parcial: desborda a 768 px)
 
 ### Boceto conceptual
 
@@ -107,8 +142,8 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T10 | Guardar usuario en MongoDB | BD | Backend |
 | T11 | Implementar protección de contraseña | Backend | Backend |
 | T12 | Mostrar confirmación de registro ✅ | Frontend | Frontend |
-| T13 | Probar registro válido | QA | Integración/DevOps |
-| T14 | Probar correo duplicado | QA | Integración/DevOps |
+| T13 | Probar registro válido ✅ | QA | Integración/DevOps |
+| T14 | Probar correo duplicado ✅ | QA | Integración/DevOps |
 | T15 | Crear PR y realizar revisión | Git/GitHub | Todos |
 
 ## UI/UX
@@ -131,7 +166,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 
 - Utilizar verde para confirmaciones. ✅
 - Utilizar rojo para errores. ✅
-- Utilizar azul para acciones principales. ✅
+- Utilizar azul para acciones principales (solo al pasar el cursor; el fondo normal es oscuro).
 - Mantener etiquetas visibles. ✅
 - Mostrar mensajes de validación debajo del campo correspondiente. ✅
 - Indicar claramente los campos obligatorios.
@@ -319,9 +354,9 @@ Cada servicio puede mostrarse como una tarjeta:
 | T09 | Evitar reservas duplicadas | Backend | Backend |
 | T10 | Guardar reserva | BD | Backend |
 | T11 | Mostrar confirmación ✅ | Frontend | Frontend |
-| T12 | Mostrar resumen antes de confirmar ✅ | UI/UX | Frontend |
-| T13 | Probar reserva | QA | Integración/DevOps |
-| T14 | Probar intento de reserva duplicada | QA | Integración/DevOps |
+| T12 | Mostrar resumen antes de confirmar | UI/UX | Frontend |
+| T13 | Probar reserva ✅ | QA | Integración/DevOps |
+| T14 | Probar intento de reserva duplicada ✅ | QA | Integración/DevOps |
 
 ## Elementos
 
@@ -384,7 +419,7 @@ El usuario debe poder identificar fácilmente:
 | T07 | Crear filtros por estado | Frontend | Frontend |
 | T08 | Crear vista detalle | Frontend | Frontend |
 | T09 | Implementar paginación | Frontend | Frontend |
-| T10 | Probar consultas | QA | Integración/DevOps |
+| T10 | Probar consultas ✅ | QA | Integración/DevOps |
 
 ## Elementos
 
@@ -560,7 +595,7 @@ Se recomienda mantener una convención uniforme:
 | Confirmar/activar | Verde |
 | Advertencia | Amarillo |
 | Eliminar/cancelar | Rojo ✅ |
-| Cancelar/volver | Gris ✅ |
+| Cancelar/volver | Gris |
 
 ## Formularios
 
@@ -571,7 +606,7 @@ Todos deberían contemplar:
 - Placeholder
 - Validación ✅
 - Mensaje de error ✅
-- Indicador de campo obligatorio `*` ✅
+- Indicador de campo obligatorio `*` (solo fechas; falta en registro/login)
 - Botón Guardar ✅
 - Botón Cancelar ✅
 
