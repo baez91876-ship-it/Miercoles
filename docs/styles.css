@@ -885,3 +885,21 @@ dialog::backdrop { background: rgba(30, 41, 59, 0.5); }
   .reservation-actions, .reservation-title { flex-wrap: wrap; }
   .reservation-code { overflow-wrap: anywhere; }
 }
+
+@media (max-width: 480px) {
+  .booking-user {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .main-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .main-nav button {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+}

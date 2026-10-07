@@ -85,7 +85,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 
 | ID | Tarea | Área | Responsable sugerido |
 |---|---|---|---|
-| T01 | Diseñar wireframe de la pantalla de Login | UI/UX | Frontend |
+| T01 | Diseñar wireframe de la pantalla de Login ✅ | UI/UX | Frontend |
 | T02 | Definir paleta de colores y tipografía ✅ | UI/UX | Frontend |
 | T03 | Crear estructura HTML/React de Login ✅ | Frontend | Frontend |
 | T04 | Diseñar formulario de usuario/correo y contraseña ✅ | UI/UX | Frontend |
@@ -160,7 +160,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 
 | ID | Tarea | Área | Responsable |
 |---|---|---|---|
-| T01 | Diseñar wireframe de Registro | UI/UX | Frontend |
+| T01 | Diseñar wireframe de Registro ✅ | UI/UX | Frontend |
 | T02 | Definir campos del formulario ✅ | UI/UX | Frontend |
 | T03 | Crear formulario ✅ | Frontend | Frontend |
 | T04 | Validar nombre ✅ | Frontend | Frontend |
@@ -401,7 +401,7 @@ Cada servicio puede mostrarse como una tarjeta:
 | ID | Tarea | Área | Responsable |
 |---|---|---|---|
 | T01 | Diseñar flujo de reserva ✅ | UI/UX | Frontend |
-| T02 | Diseñar selector de servicio | UI/UX | Frontend |
+| T02 | Diseñar selector de servicio ✅ (tarjetas de habitaciones) | UI/UX | Frontend |
 | T03 | Diseñar selector de fecha ✅ | UI/UX | Frontend |
 | T04 | Diseñar selector de hora | UI/UX | Frontend |
 | T05 | Crear formulario ✅ | Frontend | Frontend |
@@ -411,7 +411,7 @@ Cada servicio puede mostrarse como una tarjeta:
 | T09 | Evitar reservas duplicadas | Backend | Backend |
 | T10 | Guardar reserva | BD | Backend |
 | T11 | Mostrar confirmación ✅ | Frontend | Frontend |
-| T12 | Mostrar resumen antes de confirmar | UI/UX | Frontend |
+| T12 | Mostrar resumen antes de confirmar ✅ (disponibilidad, estancia y precio en las tarjetas) | UI/UX | Frontend |
 | T13 | Probar reserva ✅ | QA | Integración/DevOps |
 | T14 | Probar intento de reserva duplicada ✅ | QA | Integración/DevOps |
 
@@ -474,7 +474,7 @@ El usuario debe poder identificar fácilmente:
 | T05 | Mostrar estado de reserva ✅ | Frontend | Frontend |
 | T06 | Crear filtros por fecha | Frontend | Frontend |
 | T07 | Crear filtros por estado | Frontend | Frontend |
-| T08 | Crear vista detalle | Frontend | Frontend |
+| T08 | Crear vista detalle ✅ (detalle en cada tarjeta) | Frontend | Frontend |
 | T09 | Implementar paginación | Frontend | Frontend |
 | T10 | Probar consultas ✅ | QA | Integración/DevOps |
 
@@ -488,10 +488,10 @@ El usuario debe poder identificar fácilmente:
 - Servicio (habitación) ✅
 - Fecha ✅
 - Hora
-- Usuario
+- Usuario ✅ (visible para administrador)
 - Estado ✅
 - Acciones ✅
-- Vista detalle
+- Vista detalle ✅ (detalle en cada tarjeta)
 
 ## Estados
 
@@ -729,6 +729,66 @@ Main
 # 13. Estructura recomendada en GitHub Projects
 
 Cada HUS puede convertirse en una **Issue principal**, y las tareas en subtareas.
+
+**Estado de este proyecto:** el [GitHub Project vinculado al repositorio](https://github.com/users/baez91876-ship-it/projects/2) tiene la vista de tablero **Flujo de tareas**, agrupada por `Status`, con los estados Backlog, Pendiente, En Desarrollo, Code Review, Pruebas y Finalizado, en ese orden. Se crearon **9 Issues principales y 116 subtareas**, tomando las tablas de las secciones 1 a 9 como fuente. Las 125 Issues están abiertas y en Backlog, y además están asignadas a las iteraciones siguientes. Se verificaron mediante la API de GitHub las relaciones nativas de subtareas, los enlaces de seguimiento, la iteración y el estado de cada Issue en el tablero. Los roles sugeridos no asignan automáticamente cuentas.
+
+| Historia | Issue principal | Subtareas |
+|---|---|---|
+| HUS-01 — Inicio de sesión | [#6](https://github.com/baez91876-ship-it/Miercoles/issues/6) | 14 |
+| HUS-02 — Registro de usuario | [#21](https://github.com/baez91876-ship-it/Miercoles/issues/21) | 15 |
+| HUS-03 — Dashboard | [#37](https://github.com/baez91876-ship-it/Miercoles/issues/37) | 13 |
+| HUS-04 — Gestión de usuarios | [#51](https://github.com/baez91876-ship-it/Miercoles/issues/51) | 14 |
+| HUS-05 — Gestión de servicios | [#66](https://github.com/baez91876-ship-it/Miercoles/issues/66) | 14 |
+| HUS-06 — Crear reserva | [#81](https://github.com/baez91876-ship-it/Miercoles/issues/81) | 14 |
+| HUS-07 — Consultar reservas | [#96](https://github.com/baez91876-ship-it/Miercoles/issues/96) | 10 |
+| HUS-08 — Actualizar reserva | [#107](https://github.com/baez91876-ship-it/Miercoles/issues/107) | 11 |
+| HUS-09 — Cancelar reserva | [#119](https://github.com/baez91876-ship-it/Miercoles/issues/119) | 11 |
+
+### Plan de tres sprints
+
+Las iteraciones del Project comienzan en las fechas indicadas y usan duraciones de semanas completas, como requiere GitHub Projects. La fecha calculada de fin es exclusiva (el último día incluido es el día anterior). Las historias y sus subtareas permanecen juntas en el mismo sprint. HUS-06 se programa después de HUS-05: crear reservas depende del catálogo de servicios.
+
+**Sincronización pendiente:** GitHub rechazó las mutaciones de Issues y de elementos del Project durante este ajuste. La distribución que sigue es el plan acordado; la vista del Project aún conserva HUS-06 en Sprint 2, por lo que no debe tomarse como actualizado hasta que se confirme allí.
+
+| Sprint | Inicio y duración | Historias | Issues |
+|---|---|---|---:|
+| Sprint 1 | 16 sep 2026 · 1 semana (hasta el 22 sep) | HUS-01 Inicio de sesión, HUS-02 Registro de usuario, HUS-03 Dashboard | 45 |
+| Sprint 2 | 30 sep 2026 · 2 semanas (hasta el 13 oct) | HUS-04 Gestión de usuarios, HUS-05 Gestión de servicios | 30 |
+| Sprint 3 | 14 oct 2026 · 1 semana (hasta el 20 oct) | HUS-06 Crear reserva, HUS-07 Consultar reservas, HUS-08 Actualizar reserva, HUS-09 Cancelar reserva | 50 |
+
+### Sprint 2 — Desarrollo e integración
+
+**Objetivo:** ampliar el sistema y fortalecer la colaboración.
+
+| Área | Alcance |
+|---|---|
+| Backend | CRUD de usuarios y/o servicios. |
+| Frontend | Interfaces y consumo de API para usuarios y servicios. |
+| Integración / DevOps | Seguimiento de PR, revisión, integración y resolución de conflictos. |
+
+**Historias:** HUS-04 y HUS-05 ([#51](https://github.com/baez91876-ship-it/Miercoles/issues/51) y [#66](https://github.com/baez91876-ship-it/Miercoles/issues/66)). HUS-06 ([#81](https://github.com/baez91876-ship-it/Miercoles/issues/81)) se programa en Sprint 3, después de disponer del catálogo de servicios.
+
+#### Flujo colaborativo y evidencia requerida
+
+- [ ] Actualizar ramas con `git fetch` y `git pull`.
+- [ ] Crear nuevas ramas `feature/*`.
+- [ ] Realizar PR hacia `frontend` y/o `backend`.
+- [ ] Solicitar y atender cambios de Code Review.
+- [ ] Provocar y resolver al menos un conflicto; documentar las ramas y la resolución.
+- [ ] Integrar cambios aprobados en `develop`.
+- [ ] Actualizar GitHub Projects y enlazar PR, revisiones, conflicto resuelto e integración como evidencia.
+
+Los puntos anteriores son criterios de seguimiento, no actividades declaradas como completadas. Actualizar sus checks únicamente al adjuntar evidencia verificable.
+
+### Ejecución solicitada: solo frontend
+
+Por decisión del usuario, el alcance de esta ejecución conserva el modo local con `localStorage` y excluye el consumo de API. Las interfaces locales de usuarios y servicios ya están implementadas en `docs/` en `main`, así que no se duplicaron ni se modificó su código. Se verificó en el navegador local un recorrido de creación y eliminación de un usuario temporal y un servicio temporal; ambos registros se retiraron después de la prueba.
+
+Se corrigió la presentación móvil de la navegación en [docs/styles.css](./docs/styles.css): hasta 480 px, los cuatro accesos se distribuyen en dos columnas uniformes y la fila del usuario ocupa todo el ancho disponible. El flujo de usuarios y servicios se revisó a 320, 390, 768, 1024 y 1440 px sin desbordamiento horizontal del documento.
+
+La aplicación anuncia que guarda en `localStorage` y no tiene conexión a servidor. Por ello, el CRUD de backend/base de datos, el consumo de API, las revisiones de PR, la resolución de conflictos y la integración a `develop` no forman parte de lo ejecutado. No se creó evidencia de colaboración que no haya ocurrido.
+
+Las marcas de implementación local se conservaron como evidencia en las descripciones, no como cierre automático de tareas. La implementación frontend sí se confirmó en un commit y se subió a `main` ✅; se hizo directamente sobre `main`, sin Pull Request, Code Review ni GitHub Actions verificados. El ejemplo siguiente sigue siendo ilustrativo; las subtareas creadas usan los identificadores `HUS-XX-TXX` y las tareas de las tablas, no esta lista abreviada.
 
 Ejemplo:
 
