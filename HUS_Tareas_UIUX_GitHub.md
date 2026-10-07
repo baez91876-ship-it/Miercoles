@@ -119,7 +119,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 - Nombre de aplicación ✅
 - Nombre completo ✅
 - Correo electrónico ✅
-- Teléfono
+- Teléfono ✅
 - Contraseña ✅
 - Confirmar contraseña ✅
 - Botón **Registrarse** ✅
@@ -513,17 +513,17 @@ Para que los tres aprendices trabajen sobre una misma aplicación, se recomienda
 
 | Uso | Color | Hex |
 |---|---|---|
-| Primario | Azul | `#2563EB` |
-| Primario oscuro | Azul oscuro | `#1E3A8A` |
-| Fondo | Gris claro | `#F8FAFC` |
-| Superficie | Blanco | `#FFFFFF` |
-| Texto principal | Gris oscuro | `#1E293B` |
-| Texto secundario | Gris | `#64748B` |
-| Éxito | Verde | `#16A34A` |
-| Advertencia | Amarillo | `#F59E0B` |
-| Error | Rojo | `#DC2626` |
-| Información | Celeste | `#0284C7` |
-| Bordes | Gris | `#CBD5E1` |
+| Primario | Azul | `#2563EB` ✅ |
+| Primario oscuro | Azul oscuro | `#1E3A8A` ✅ |
+| Fondo | Gris claro | `#F8FAFC` ✅ |
+| Superficie | Blanco | `#FFFFFF` ✅ |
+| Texto principal | Gris oscuro | `#1E293B` ✅ |
+| Texto secundario | Gris | `#64748B` ✅ |
+| Éxito | Verde | `#16A34A` ✅ |
+| Advertencia | Amarillo | `#F59E0B` ✅ |
+| Error | Rojo | `#DC2626` ✅ |
+| Información | Celeste | `#0284C7` ✅ |
+| Bordes | Gris | `#CBD5E1` ✅ |
 
 ---
 

@@ -96,6 +96,7 @@ function switchView(view) {
 function validateRegistration() {
   const name = document.querySelector('#register-name').value.trim();
   const email = document.querySelector('#register-email').value.trim().toLowerCase();
+  const phone = document.querySelector('#register-phone').value.trim();
   const password = document.querySelector('#register-password').value;
   const confirm = document.querySelector('#register-confirm').value;
   const terms = document.querySelector('#register-terms').checked;
@@ -126,7 +127,7 @@ function validateRegistration() {
     valid = false;
   }
 
-  return { valid, name, email, password };
+  return { valid, name, email, phone, password };
 }
 
 function handleRegistrationSubmit(event) {
@@ -147,6 +148,7 @@ function handleRegistrationSubmit(event) {
   users.push({
     nombre: result.name,
     correo: result.email,
+    telefono: result.phone,
     password: result.password,
     intentosFallidos: 0,
     bloqueadoHasta: 0,
