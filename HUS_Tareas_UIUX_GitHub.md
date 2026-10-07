@@ -29,7 +29,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T07 | Validar credenciales en el servidor | Backend | Backend |
 | T08 | Consultar usuario en MongoDB | Base de datos | Backend |
 | T09 | Implementar manejo de sesión/token ✅ | Backend | Backend |
-| T10 | Mostrar mensajes de error y éxito | Frontend | Frontend |
+| T10 | Mostrar mensajes de error y éxito ✅ | Frontend | Frontend |
 | T11 | Probar login exitoso | QA | Integración/DevOps |
 | T12 | Probar credenciales incorrectas | QA | Integración/DevOps |
 | T13 | Crear Pull Request | Git/GitHub | Todos |
@@ -388,7 +388,7 @@ El usuario debe poder identificar fácilmente:
 
 ## Elementos
 
-- Título **Mis reservas**
+- Título **Mis reservas** ✅
 - Buscador
 - Filtro por fecha
 - Filtro por estado
@@ -571,7 +571,7 @@ Todos deberían contemplar:
 - Placeholder
 - Validación ✅
 - Mensaje de error ✅
-- Indicador de campo obligatorio `*`
+- Indicador de campo obligatorio `*` ✅
 - Botón Guardar ✅
 - Botón Cancelar ✅
 
