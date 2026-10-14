@@ -1,15 +1,34 @@
 # Descomposición de Historias de Usuario en tareas — Sistema de Reservas
 
-> ✅ indica que la página actual de Hotel Clara cumple el requisito de forma visible o en su lógica del navegador. No implica que exista implementación en servidor, base de datos o pruebas automatizadas.
+> ✅ indica que el requisito está implementado y verificado en el alcance indicado en la tarea. Una marca de frontend local no certifica la API; una marca de backend no implica que la interfaz está conectada a ella.
 
-> Las marcas QA anteriores de login y reservas corresponden a la ejecución histórica de Playwright. Esta actualización de frontend se verificó en el navegador integrado, como se detalla debajo. Las marcas no certifican MongoDB ni endpoints: la aplicación es estática y usa `localStorage`. Un requisito parcial o una prueba fallida queda sin check.
+> Las marcas QA de la interfaz indican pruebas en navegador local. La API se verifica por separado con pruebas HTTP automatizadas y una prueba contra una base MongoDB temporal. Un requisito parcial, una integración pendiente o una prueba fallida queda sin check.
 
-## Actualización de frontend — 7 de octubre de 2026
+## Estado actual de integración
+
+- El frontend de `docs/` llama a la API para login/registro, dashboard, usuarios,
+  servicios y reservas. El token es lo único de negocio que persiste en el
+  navegador; cuentas, catálogo y reservas vienen de FastAPI/MongoDB.
+- HUS-06 admite estancias por noches y citas con fecha/hora de inicio y fin.
+  La API valida disponibilidad, permisos, servicio activo, capacidad y precio.
+- Verificación actual: 21 pruebas HTTP/unitarias aprobadas y 1 prueba de
+  integración omitida en la suite normal; 1 prueba MongoDB temporal aprobada,
+  incluyendo persistencia CRUD de reservas. La base temporal se elimina al
+  terminar y no altera `hotel`.
+- La página se abrió a través de FastAPI; `/health` confirmó MongoDB `hotel`.
+  En navegador se verificó el rechazo de credenciales inválidas, validaciones
+  vacías del registro y ausencia de desbordamiento de las pantallas de acceso a
+  320, 390, 768, 1024 y 1440 px. No se verificó el recorrido autenticado
+  completo ni el despliegue en GitHub Pages. QA integral, PR y code review
+  quedan pendientes.
+
+## Evidencia histórica de frontend local — 7 de octubre de 2026
 
 - Login sin desbordamiento a 768 px ✅. También se verificaron registro, dashboard, reservas y usuarios a 320, 390, 768, 1024 y 1440 px.
 - Dashboard con header, menú de cuenta, navegación, estadísticas locales, reservas recientes, estados y acciones rápidas ✅.
 - Gestión de usuarios local con creación, edición por el administrador (nombre, correo, contraseña, rol y estado), eliminación confirmada, búsqueda, filtros y paginación de cinco registros ✅. El administrador no puede cambiar su propio rol/estado.
-- Administrador de demostración: `baez91876@gmail.com` / `1234` ✅, creado/configurado automáticamente una sola vez por cuenta, sin registro. Contraseña pública, no apta para producción.
+- La versión histórica usaba un administrador local de demostración; esa cuenta
+  y contraseña ya no existen en la versión conectada a la API.
 - Administrador puede consultar y editar reservas de todos los clientes ✅, conservando el propietario. Eliminar sigue limitado a las reservas propias.
 - Clientes solo ven sus reservas y no acceden a Usuarios/Servicios administrativos ✅. Edición y eliminación de reservas ajenas rechazadas en la lógica del navegador.
 - Administrador edita usuarios, puede cambiar su correo conservando la asociación de reservas, y crea cuentas desde el panel ✅.
@@ -18,15 +37,15 @@
 - Recorrido manual de regresión en navegador local: login válido/inválido, registro de dos clientes, reserva de ambas cuentas, aislamiento de datos, edición administrativa de usuarios y reservas, CRUD de servicios, validaciones y responsive en 320/390/768/1024/1440 px. No es ejecución de Playwright.
 - No se ejecutó nuevamente la suite ni se probó GitHub Pages: los comandos quedaron bloqueados por la política de red local del sandbox en Windows. No se restauraron los archivos de pruebas eliminados en la copia de trabajo.
 
-**Alcance:** solo UI/UX y frontend. No se crearon endpoints, integración con API, backend ni BD. Los roles locales no son autorización segura para producción. Las estadísticas de usuarios/todas las reservas se muestran solo al administrador; el usuario normal ve sus reservas. Servicios cuenta los tipos de habitación del catálogo.
+**Alcance histórico:** la versión descrita en esta sección era solo UI/UX y
+frontend. Sus cuentas y datos en `localStorage` no son la fuente de datos actual.
 
 ## Acceso y criterio de los checks
 
-Los accesos de administrador y los usuarios históricos de demostración están
-documentados en [Credenciales de acceso y prueba](./CREDENCIALES_PRUEBA.md).
-El administrador local se crea automáticamente; los clientes sí deben
-registrarse antes de iniciar sesión. Las contraseñas de prueba de clientes
-no implican cuentas precargadas.
+No hay credenciales compartidas ni administrador de demostración. El primer
+administrador se crea una vez con `POST /api/auth/bootstrap-admin` usando la
+clave local `ADMIN_SETUP_KEY` en `.env`; los clientes se registran desde la
+interfaz.
 
 ✅ marca únicamente lo implementado o probado en el alcance indicado.
 Las pruebas locales de dashboard y CRUD de usuarios no certifican una API.
@@ -90,10 +109,10 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T03 | Crear estructura HTML/React de Login ✅ | Frontend | Frontend |
 | T04 | Diseñar formulario de usuario/correo y contraseña ✅ | UI/UX | Frontend |
 | T05 | Implementar validaciones de campos obligatorios ✅ | Frontend | Frontend |
-| T06 | Crear endpoint `POST /api/auth/login` | Backend | Backend |
-| T07 | Validar credenciales en el servidor | Backend | Backend |
-| T08 | Consultar usuario en MongoDB | Base de datos | Backend |
-| T09 | Implementar manejo de sesión/token | Backend | Backend |
+| T06 | Crear endpoint `POST /api/auth/login` ✅ | Backend | Backend |
+| T07 | Validar credenciales en el servidor ✅ | Backend | Backend |
+| T08 | Consultar usuario en MongoDB ✅ | Base de datos | Backend |
+| T09 | Implementar manejo de sesión/token ✅ | Backend | Backend |
 | T10 | Mostrar mensajes de error y éxito ✅ | Frontend | Frontend |
 | T11 | Probar login exitoso ✅ | QA | Integración/DevOps |
 | T12 | Probar credenciales incorrectas ✅ | QA | Integración/DevOps |
@@ -166,11 +185,11 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T04 | Validar nombre ✅ | Frontend | Frontend |
 | T05 | Validar correo ✅ | Frontend | Frontend |
 | T06 | Validar contraseña ✅ | Frontend | Frontend |
-| T07 | Crear `POST /api/auth/register` | Backend | Backend |
-| T08 | Verificar que el correo no exista | Backend | Backend |
-| T09 | Crear modelo Usuario | Backend/BD | Backend |
-| T10 | Guardar usuario en MongoDB | BD | Backend |
-| T11 | Implementar protección de contraseña | Backend | Backend |
+| T07 | Crear `POST /api/auth/register` ✅ | Backend | Backend |
+| T08 | Verificar que el correo no exista ✅ | Backend | Backend |
+| T09 | Crear modelo Usuario ✅ | Backend/BD | Backend |
+| T10 | Guardar usuario en MongoDB ✅ | BD | Backend |
+| T11 | Implementar protección de contraseña ✅ | Backend | Backend |
 | T12 | Mostrar confirmación de registro ✅ | Frontend | Frontend |
 | T13 | Probar registro válido ✅ | QA | Integración/DevOps |
 | T14 | Probar correo duplicado ✅ | QA | Integración/DevOps |
@@ -217,14 +236,14 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T02 | Diseñar menú de navegación ✅ | UI/UX | Frontend |
 | T03 | Crear Header ✅ | Frontend | Frontend |
 | T04 | Crear Sidebar/Navbar ✅ | Frontend | Frontend |
-| T05 | Crear tarjetas estadísticas ✅ (datos locales) | Frontend | Frontend |
-| T06 | Mostrar cantidad de usuarios | Backend | Backend |
-| T07 | Mostrar cantidad de servicios | Backend | Backend |
-| T08 | Mostrar cantidad de reservas | Backend | Backend |
-| T09 | Crear endpoint de estadísticas | Backend | Backend |
+| T05 | Crear tarjetas estadísticas ✅ (datos de la API) | Frontend | Frontend |
+| T06 | API: contar usuarios ✅ | Backend | Backend |
+| T07 | API: contar servicios disponibles ✅ | Backend | Backend |
+| T08 | API: contar reservas totales/propias ✅ (filtradas por rol) | Backend | Backend |
+| T09 | Crear endpoint `GET /api/stats` ✅ | Backend | Backend |
 | T10 | Integrar Dashboard con API | Frontend | Frontend |
 | T11 | Implementar responsive ✅ | UI/UX | Frontend |
-| T12 | Realizar pruebas ✅ (dashboard local y responsive; sin API) | QA | Integración/DevOps |
+| T12 | Realizar pruebas de dashboard responsive en navegador; falta recorrido autenticado contra API | QA | Integración/DevOps |
 | T13 | Crear PR | Git | Todos |
 
 ## Paleta sugerida
@@ -247,7 +266,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 - Menú de usuario ✅
 - Sidebar/Navbar ✅
 - Dashboard ✅
-- Tarjetas estadísticas ✅ (locales)
+- Tarjetas estadísticas desde la API
 - Usuarios registrados ✅ (administrador)
 - Servicios disponibles ✅ (servicios activos; disponibilidad por fechas en reservas)
 - Reservas ✅ (propias para usuario; totales para administrador)
@@ -271,15 +290,15 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 | T02 | Diseñar tabla de usuarios ✅ | UI/UX | Frontend |
 | T03 | Diseñar botón Nuevo Usuario ✅ | UI/UX | Frontend |
 | T04 | Crear formulario Usuario ✅ | Frontend | Frontend |
-| T05 | Crear `GET /api/users` | Backend | Backend |
-| T06 | Crear `POST /api/users` | Backend | Backend |
-| T07 | Crear `PUT /api/users/:id` | Backend | Backend |
-| T08 | Crear `DELETE /api/users/:id` | Backend | Backend |
-| T09 | Crear modelo Usuario | BD | Backend |
-| T10 | Implementar búsqueda local ✅ (backend pendiente) | Frontend/Backend | Frontend |
+| T05 | Crear `GET /api/users` ✅ | Backend | Backend |
+| T06 | Crear `POST /api/users` ✅ | Backend | Backend |
+| T07 | Crear `PUT /api/users/:id` ✅ | Backend | Backend |
+| T08 | Crear `DELETE /api/users/:id` ✅ | Backend | Backend |
+| T09 | Crear modelo Usuario en MongoDB ✅ | BD | Backend |
+| T10 | Implementar búsqueda en frontend conectada a `q` de la API | Frontend/Backend | Frontend |
 | T11 | Implementar confirmación antes de eliminar ✅ | UI/UX | Frontend |
 | T12 | Mostrar estados ✅ | UI/UX | Frontend |
-| T13 | Probar CRUD completo ✅ (usuarios locales; sin endpoints ni BD) | QA | Integración/DevOps |
+| T13 | Probar CRUD ✅ (UI local y API con MongoDB temporal) | QA | Integración/DevOps |
 | T14 | Resolver errores encontrados | Todos | Todos |
 
 ## Elementos de pantalla
@@ -304,7 +323,9 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 |---|---|
 | Activo | `#16A34A` ✅ |
 | Inactivo | `#DC2626` ✅ |
-| Pendiente | `#F59E0B` |
+| Pendiente | `#F59E0B` ✅ (bloquea el inicio de sesión hasta que un administrador active la cuenta) |
+
+El administrador puede crear o cambiar una cuenta a Pendiente; el registro público sigue creando cuentas Activas. No hay aprobación automática.
 
 ---
 
@@ -314,11 +335,11 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 
 > Como administrador, quiero gestionar los servicios disponibles para que puedan ser utilizados en las reservas.
 
-**Implementación actual: solo frontend.** Las habitaciones se administran como
-servicios en `localStorage`, conservando los identificadores del catálogo
-original y las reservas existentes. Precio por noche y duración mínima en
-noches (no citas por minutos). La capacidad se mantiene entre 1 y 4 huéspedes.
-Solo el administrador accede a esta pantalla.
+**Interfaz:** el catálogo y sus imágenes se leen y guardan mediante la API.
+**Backend:** el catálogo CRUD persiste en MongoDB y requiere autorización de
+administrador. El precio y duración se configuran por noche; una reserva de
+horario cobra el precio del servicio por cita. La capacidad se mantiene entre
+1 y 4 huéspedes.
 
 Los servicios inactivos no admiten nuevas reservas. Editar el catálogo no cambia
 el nombre ni el total histórico de una reserva; al editar esa reserva se aplican
@@ -332,32 +353,31 @@ desactivarse. La eliminación sin reservas requiere confirmación.
 | T01 | Diseñar pantalla de servicios ✅ | UI/UX | Frontend |
 | T02 | Diseñar tarjetas/listado de servicios ✅ | UI/UX | Frontend |
 | T03 | Diseñar formulario de servicio ✅ | UI/UX | Frontend |
-| T04 | Crear CRUD de servicios | Backend | Backend |
-| T05 | Crear modelo Servicio | BD | Backend |
-| T06 | Crear endpoint GET | Backend | Backend |
-| T07 | Crear endpoint POST | Backend | Backend |
-| T08 | Crear endpoint PUT | Backend | Backend |
-| T09 | Crear endpoint DELETE | Backend | Backend |
-| T10 | Implementar búsqueda ✅ (nombre, descripción y categoría) | Frontend | Frontend |
-| T11 | Implementar filtro por estado ✅ | Frontend | Frontend |
-| T12 | Validar precio/duración ✅ solo frontend; backend pendiente | Frontend/Backend | Backend |
-| T13 | Probar CRUD ✅ local en navegador; backend/BD no verificados | QA | Integración/DevOps |
+| T04 | Crear CRUD de servicios ✅ | Backend | Backend |
+| T05 | Crear modelo Servicio en MongoDB ✅ | BD | Backend |
+| T06 | Crear endpoint GET ✅ | Backend | Backend |
+| T07 | Crear endpoint POST ✅ | Backend | Backend |
+| T08 | Crear endpoint PUT ✅ | Backend | Backend |
+| T09 | Crear endpoint DELETE ✅ | Backend | Backend |
+| T10 | Implementar búsqueda por nombre, descripción y categoría vía API | Frontend | Frontend |
+| T11 | Implementar filtro por estado vía API | Frontend | Frontend |
+| T12 | Validar precio/duración ✅ en frontend y backend | Frontend/Backend | Backend |
+| T13 | Probar CRUD de API con MongoDB temporal; falta validar integración UI/API en navegador | QA | Integración/DevOps |
 | T14 | Crear PR | Git | Todos |
 
-### Funcionalidad local adicional
+### Funcionalidad disponible
 
-- Crear, consultar, editar y eliminar servicios ✅ (no certifica T04 de backend).
-- Persistir catálogo e imágenes en este navegador ✅.
+- Crear, consultar, editar y eliminar servicios desde la API con rol de administrador.
+- Persistir catálogo e imágenes en MongoDB.
 - Confirmar eliminación, cancelar y cerrar con Escape ✅.
-- Rechazar nombre duplicado, precio/duración/capacidad inválidos e imagen de tipo no permitido ✅.
-- Mostrar errores de almacenamiento sin indicar éxito ✅.
+- Rechazar nombre duplicado, precio/duración/capacidad inválidos e imagen de tipo no permitido en backend.
 - Integrar servicios activos con reservas, precio, capacidad y estancia mínima ✅.
 - Conservar historial y bloquear eliminación de servicios con reservas ✅.
 - Responsive del catálogo a 320, 390, 768, 1024 y 1440 px ✅; formulario a 320 y 768 px ✅.
 
-Validación mediante archivo local en el navegador integrado; no se ejecutó
-la suite anterior ni se verificó GitHub Pages. Las tareas de backend/BD/PR
-permanecen sin check.
+El CRUD de la API y su persistencia en MongoDB temporal pasaron las pruebas.
+La conexión UI/API está implementada, pero su CRUD completo aún no se verificó
+en navegador; tampoco se verificó GitHub Pages. PR y revisión siguen pendientes.
 
 ## Elementos
 
@@ -383,7 +403,7 @@ Cada servicio puede mostrarse como una tarjeta:
 - Descripción ✅
 - Precio ✅ (por noche)
 - Duración ✅ (estancia mínima en noches)
-- Imagen opcional ✅ (archivo local PNG/JPEG/WebP hasta 1 MB)
+- Imagen opcional ✅ (subida PNG/JPEG/WebP hasta 1 MB)
 - Estado ✅ (Disponible / Inactivo)
 - Categoría ✅
 - Capacidad ✅ (huéspedes)
@@ -405,15 +425,15 @@ Cada servicio puede mostrarse como una tarjeta:
 | T03 | Diseñar selector de fecha ✅ | UI/UX | Frontend |
 | T04 | Diseñar selector de hora | UI/UX | Frontend |
 | T05 | Crear formulario ✅ | Frontend | Frontend |
-| T06 | Crear modelo Reserva | BD | Backend |
-| T07 | Crear `POST /api/reservations` | Backend | Backend |
-| T08 | Validar disponibilidad | Backend | Backend |
-| T09 | Evitar reservas duplicadas | Backend | Backend |
-| T10 | Guardar reserva | BD | Backend |
+| T06 | Crear modelo Reserva en MongoDB ✅ | BD | Backend |
+| T07 | Crear `POST /api/reservations` ✅ | Backend | Backend |
+| T08 | Validar disponibilidad en backend ✅ | Backend | Backend |
+| T09 | Evitar solapamientos en backend ✅ | Backend | Backend |
+| T10 | Guardar y editar reservas en MongoDB ✅ | BD | Backend |
 | T11 | Mostrar confirmación ✅ | Frontend | Frontend |
 | T12 | Mostrar resumen antes de confirmar ✅ (disponibilidad, estancia y precio en las tarjetas) | UI/UX | Frontend |
-| T13 | Probar reserva ✅ | QA | Integración/DevOps |
-| T14 | Probar intento de reserva duplicada ✅ | QA | Integración/DevOps |
+| T13 | Probar reservas de noches y horario en API/MongoDB ✅; E2E de UI pendiente | QA | Integración/DevOps |
+| T14 | Probar intento de solapamiento en API ✅; E2E de UI pendiente | QA | Integración/DevOps |
 
 ## Elementos
 
@@ -470,7 +490,7 @@ El usuario debe poder identificar fácilmente:
 | T01 | Diseñar pantalla Mis Reservas ✅ | UI/UX | Frontend |
 | T02 | Diseñar tabla/listado ✅ | UI/UX | Frontend |
 | T03 | Crear endpoint GET reservas | Backend | Backend |
-| T04 | Filtrar reservas por usuario | Backend | Backend |
+| T04 | Filtrar reservas por usuario ✅ (filtro local por cuenta; servidor pendiente) | Backend | Backend |
 | T05 | Mostrar estado de reserva ✅ | Frontend | Frontend |
 | T06 | Crear filtros por fecha | Frontend | Frontend |
 | T07 | Crear filtros por estado | Frontend | Frontend |
@@ -498,8 +518,8 @@ El usuario debe poder identificar fácilmente:
 | Estado | Color sugerido |
 |---|---|
 | Confirmada | Verde `#16A34A` |
-| Pendiente | Amarillo `#F59E0B` |
-| Cancelada | Rojo `#DC2626` |
+| Pendiente | Amarillo `#F59E0B` ✅ (representado si la API devuelve este estado; no existe flujo de aprobación) |
+| Cancelada | Rojo `#DC2626` ✅ |
 | Finalizada | Gris/Azul ✅ |
 
 ---
@@ -518,7 +538,7 @@ El usuario debe poder identificar fácilmente:
 | T02 | Diseñar formulario de edición ✅ | UI/UX | Frontend |
 | T03 | Cargar datos existentes ✅ | Frontend | Frontend |
 | T04 | Crear `PUT /api/reservations/:id` | Backend | Backend |
-| T05 | Validar nueva disponibilidad | Backend | Backend |
+| T05 | Validar nueva disponibilidad ✅ (validación local; backend pendiente) | Backend | Backend |
 | T06 | Evitar modificación de reservas canceladas | Backend | Backend |
 | T07 | Actualizar MongoDB | BD | Backend |
 | T08 | Mostrar confirmación ✅ | Frontend | Frontend |
@@ -566,8 +586,8 @@ Botones:
 | T04 | Validar propietario de reserva | Backend | Backend |
 | T05 | Cambiar estado a cancelada | Backend | Backend |
 | T06 | Liberar disponibilidad | Backend | Backend |
-| T07 | Actualizar listado ✅ | Frontend | Frontend |
-| T08 | Mostrar mensaje de confirmación ✅ | Frontend | Frontend |
+| T07 | Actualizar listado ✅ (al eliminar localmente; no existe cancelación lógica) | Frontend | Frontend |
+| T08 | Mostrar mensaje de confirmación ✅ (confirmación de eliminación local; no de cancelación) | Frontend | Frontend |
 | T09 | Probar cancelación | QA | Integración/DevOps |
 | T10 | Probar reserva ya cancelada | QA | Integración/DevOps |
 | T11 | Crear PR | Git/GitHub | Todos |
@@ -780,13 +800,13 @@ Las iteraciones del Project comienzan en las fechas indicadas y usan duraciones 
 
 Los puntos anteriores son criterios de seguimiento, no actividades declaradas como completadas. Actualizar sus checks únicamente al adjuntar evidencia verificable.
 
-### Ejecución solicitada: solo frontend
+### Registro histórico: ejecución solo frontend (anterior a la integración)
 
-Por decisión del usuario, el alcance de esta ejecución conserva el modo local con `localStorage` y excluye el consumo de API. Las interfaces locales de usuarios y servicios ya están implementadas en `docs/` en `main`, así que no se duplicaron ni se modificó su código. Se verificó en el navegador local un recorrido de creación y eliminación de un usuario temporal y un servicio temporal; ambos registros se retiraron después de la prueba.
+En aquella ejecución, el alcance conservaba el modo local con `localStorage` y excluía el consumo de API. Después se implementó la integración documentada en el estado actual al inicio de este archivo. Se conserva este registro como evidencia histórica de la interfaz local previa; ya no describe el comportamiento actual.
 
 Se corrigió la presentación móvil de la navegación en [docs/styles.css](./docs/styles.css): hasta 480 px, los cuatro accesos se distribuyen en dos columnas uniformes y la fila del usuario ocupa todo el ancho disponible. El flujo de usuarios y servicios se revisó a 320, 390, 768, 1024 y 1440 px sin desbordamiento horizontal del documento.
 
-La aplicación anuncia que guarda en `localStorage` y no tiene conexión a servidor. Por ello, el CRUD de backend/base de datos, el consumo de API, las revisiones de PR, la resolución de conflictos y la integración a `develop` no forman parte de lo ejecutado. No se creó evidencia de colaboración que no haya ocurrido.
+En la fecha de ese registro, la aplicación guardaba datos de negocio en `localStorage` y no tenía conexión a servidor. Las revisiones de PR, la resolución de conflictos y la integración a `develop` continúan pendientes; no se creó evidencia de colaboración que no haya ocurrido.
 
 Las marcas de implementación local se conservaron como evidencia en las descripciones, no como cierre automático de tareas. La implementación frontend sí se confirmó en un commit y se subió a `main` ✅; se hizo directamente sobre `main`, sin Pull Request, Code Review ni GitHub Actions verificados. El ejemplo siguiente sigue siendo ilustrativo; las subtareas creadas usan los identificadores `HUS-XX-TXX` y las tareas de las tablas, no esta lista abreviada.
 

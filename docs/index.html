@@ -154,7 +154,7 @@
         <p class="eyebrow">PANEL PRINCIPAL</p>
         <h2 id="dashboard-title">Dashboard</h2>
         <p id="dashboard-greeting"></p>
-        <p class="local-notice">Datos de este navegador. Sin conexión a un servidor.</p>
+        <p class="local-notice">Datos actualizados desde el servidor Hotel Clara.</p>
         <div class="stat-grid">
           <article class="stat-card hidden" id="users-stat-card"><h3>Usuarios registrados</h3><strong id="stat-users">0</strong></article>
           <article class="stat-card"><h3>Servicios disponibles</h3><strong id="stat-services">0</strong><small>Servicios activos; disponibilidad según fechas</small></article>
@@ -180,12 +180,27 @@
         <h2>Encuentra tu habitación</h2>
         <form id="search-form" class="search-form" novalidate>
           <div class="field">
-            <label for="search-checkin">Entrada *</label>
+            <label for="booking-mode">Tipo de reserva</label>
+            <select id="booking-mode" name="modalidad">
+              <option value="noches">Por noches</option>
+              <option value="horario">Por horario (cita)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label id="start-date-label" for="search-checkin">Entrada *</label>
             <input id="search-checkin" name="checkin" type="date" required />
           </div>
           <div class="field">
-            <label for="search-checkout">Salida *</label>
+            <label id="end-date-label" for="search-checkout">Salida *</label>
             <input id="search-checkout" name="checkout" type="date" required />
+          </div>
+          <div class="field appointment-time hidden">
+            <label for="search-start-time">Hora de inicio *</label>
+            <input id="search-start-time" name="startTime" type="time" />
+          </div>
+          <div class="field appointment-time hidden">
+            <label for="search-end-time">Hora de fin *</label>
+            <input id="search-end-time" name="endTime" type="time" />
           </div>
           <div class="field">
             <label for="search-guests">Huéspedes</label>
@@ -196,13 +211,17 @@
               <option value="4">4 huéspedes</option>
             </select>
           </div>
+          <div class="field">
+            <label for="reservation-notes">Observaciones (opcional)</label>
+            <textarea id="reservation-notes" name="observaciones" maxlength="1000" rows="2"></textarea>
+          </div>
           <button class="primary-button search-button" type="submit">Buscar <span>→</span></button>
         </form>
         <div id="booking-message" class="global-message" role="status" aria-live="polite"></div>
       </section>
 
-      <section class="booking-section" aria-label="Habitaciones">
-        <h3>Habitaciones</h3>
+      <section class="booking-section" aria-label="Servicios disponibles">
+      <h3>Servicios disponibles</h3>
         <div id="room-list" class="room-grid"></div>
       </section>
 
@@ -220,7 +239,7 @@
           <h2 id="users-title">Gestión de usuarios</h2>
           <button id="new-user" class="room-button" type="button">+ Nuevo usuario</button>
         </div>
-        <p class="local-notice">Administración local de demostración. Los roles no sustituyen la autorización de un servidor.</p>
+        <p class="local-notice">Los cambios se guardan en la base de datos del servidor.</p>
         <div id="users-message" class="global-message" role="status" aria-live="polite"></div>
         <form id="user-form" class="user-editor hidden" novalidate aria-labelledby="user-form-title">
           <h3 id="user-form-title">Nuevo usuario</h3>
@@ -228,16 +247,16 @@
           <div class="field"><label for="user-email">Correo electrónico *</label><input id="user-email" name="correo" type="email" autocomplete="email" required /><small class="field-error" data-error-for="user-email"></small></div>
           <div class="field"><label for="user-password">Contraseña</label><div class="password-field"><input id="user-password" name="password" type="password" autocomplete="new-password" aria-describedby="user-password-hint" /><button class="password-toggle" type="button" aria-label="Mostrar contraseña" data-target="user-password">👁</button></div><small id="user-password-hint" class="field-hint">Obligatoria al crear. Al editar, déjala vacía para conservarla. Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</small><small class="field-error" data-error-for="user-password"></small></div>
           <div class="field"><label for="user-role">Rol</label><select id="user-role" name="rol"><option value="usuario">Usuario</option><option value="administrador">Administrador</option></select></div>
-          <div class="field"><label for="user-status">Estado</label><select id="user-status" name="estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div>
+          <div class="field"><label for="user-status">Estado</label><select id="user-status" name="estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option><option value="pendiente">Pendiente</option></select></div>
           <div class="quick-actions"><button class="room-button" type="submit">Guardar usuario</button><button id="cancel-user-edit" class="ghost-button" type="button">Cancelar</button></div>
         </form>
         <div class="user-filters">
           <div class="field"><label for="users-search">Buscar por nombre o correo</label><input id="users-search" type="search" placeholder="Buscar usuarios" /></div>
           <div class="field"><label for="users-role-filter">Filtrar por rol</label><select id="users-role-filter"><option value="">Todos los roles</option><option value="administrador">Administrador</option><option value="usuario">Usuario</option></select></div>
-          <div class="field"><label for="users-status-filter">Filtrar por estado</label><select id="users-status-filter"><option value="">Todos los estados</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div>
+          <div class="field"><label for="users-status-filter">Filtrar por estado</label><select id="users-status-filter"><option value="">Todos los estados</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option><option value="pendiente">Pendiente</option></select></div>
         </div>
         <div class="table-scroll" role="region" aria-label="Tabla de usuarios" tabindex="0">
-          <table class="users-table"><caption>Usuarios guardados en este navegador</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Correo</th><th scope="col">Rol</th><th scope="col">Estado</th><th scope="col">Fecha de registro</th><th scope="col">Acciones</th></tr></thead><tbody id="users-table-body"></tbody></table>
+          <table class="users-table"><caption>Usuarios registrados en Hotel Clara</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Correo</th><th scope="col">Rol</th><th scope="col">Estado</th><th scope="col">Fecha de registro</th><th scope="col">Acciones</th></tr></thead><tbody id="users-table-body"></tbody></table>
         </div>
         <p id="users-empty" class="empty-state hidden">No hay usuarios que coincidan con los filtros.</p>
         <nav class="pagination" aria-label="Paginación de usuarios"><button id="users-previous" class="ghost-button" type="button">Anterior</button><span id="users-page-info" role="status"></span><button id="users-next" class="ghost-button" type="button">Siguiente</button></nav>
@@ -250,7 +269,7 @@
 
       <section id="services-page" class="app-page hidden" aria-labelledby="services-title">
         <div class="section-head"><h2 id="services-title">Gestión de servicios</h2><button id="new-service" class="room-button" type="button">+ Nuevo servicio</button></div>
-        <p class="local-notice">Catálogo local de habitaciones. Precio por noche y estancia mínima en noches. Sin API ni backend.</p>
+        <p class="local-notice">Catálogo guardado en MongoDB. Precio por noche y estancia mínima en noches.</p>
         <div id="services-message" class="global-message" role="status" aria-live="polite"></div>
         <form id="service-form" class="user-editor hidden" novalidate aria-labelledby="service-form-title">
           <h3 id="service-form-title">Nuevo servicio</h3>

@@ -685,12 +685,34 @@ h1 em {
   letter-spacing: 0.08em;
 }
 
+.reservation-card.state-en-curso .reservation-state {
+  background: var(--success);
+}
+
+.reservation-card.state-confirmada,
 .reservation-card.state-en-curso {
   border-left-color: var(--success);
 }
 
-.reservation-card.state-en-curso .reservation-state {
+.reservation-card.state-confirmada .reservation-state {
   background: var(--success);
+}
+
+.reservation-card.state-pendiente {
+  border-left-color: var(--warning);
+}
+
+.reservation-card.state-pendiente .reservation-state {
+  background: var(--warning);
+  color: var(--ink);
+}
+
+.reservation-card.state-cancelada {
+  border-left-color: var(--error);
+}
+
+.reservation-card.state-cancelada .reservation-state {
+  background: var(--error);
 }
 
 .reservation-card.state-finalizada {
@@ -817,6 +839,7 @@ h1 em {
 .user-state { display: inline-block; padding: 4px 8px; border-radius: 6px; }
 .user-state.activo { background: var(--success); color: var(--surface); }
 .user-state.inactivo { background: var(--error); color: var(--surface); }
+.user-state.pendiente { background: var(--warning); color: var(--ink); }
 .pagination { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px; margin-top: 20px; font-size: 13px; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 button:focus-visible, summary:focus-visible, .table-scroll:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }

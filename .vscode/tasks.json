@@ -1,0 +1,412 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Inspect working tree status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate checklist formatting",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage checklist corrections",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"--",
+				"HUS_Tareas_UIUX_GitHub.md"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit checklist corrections",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"Mark additional hotel page requirements",
+				"-m",
+				"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push checklist corrections",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Crear entorno virtual e instalar dependencias",
+			"type": "shell",
+			"command": "c:/python314/python.exe -m venv .venv; .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt; Remove-Item -LiteralPath PETICIONES\\VERIFICAR_MONGO.py.new -ErrorAction SilentlyContinue; .\\.venv\\Scripts\\python.exe -m PETICIONES.VERIFICAR_MONGO",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Ejecutar pruebas",
+			"type": "shell",
+			"command": ".\\.venv\\Scripts\\python.exe -m pip install -r requirements-dev.txt; if ($?) { .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probar API contra MongoDB temporal",
+			"type": "shell",
+			"command": "$env:RUN_MONGO_INTEGRATION='1'; .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_mongodb_integration.py -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Iniciar API Hotel Clara",
+			"type": "shell",
+			"command": ".\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"uvicorn",
+				"PETICIONES.API:app",
+				"--reload"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validar JavaScript del frontend",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--check",
+				"docs\\script.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Crear configuración local segura",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"scripts\\setup-local-env.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect GitHub project tasks",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"item-list",
+				"2",
+				"--owner",
+				"baez91876-ship-it",
+				"--format",
+				"json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect GitHub project status fields",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const {execFileSync}=require('node:child_process');for(const args of [['project','view','2','--owner','baez91876-ship-it','--format','json'],['project','field-list','2','--owner','baez91876-ship-it','--format','json']]){const out=execFileSync('gh',args,{encoding:'utf8'});const data=JSON.parse(out);console.log(JSON.stringify(data));}"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List project workflow fields",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"field-list",
+				"2",
+				"--owner",
+				"baez91876-ship-it",
+				"--format",
+				"json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Summarize project item status",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"item-list",
+				"2",
+				"--owner",
+				"baez91876-ship-it",
+				"--format",
+				"json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Get GitHub Project fields",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"field-list",
+				"2",
+				"--owner",
+				"baez91876-ship-it",
+				"--format",
+				"json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Summarize project tasks",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const {execFileSync}=require('child_process');const x=JSON.parse(execFileSync('gh',['project','item-list','2','--owner','baez91876-ship-it','--format','json'],{encoding:'utf8'}));for(const i of x.items)console.log(`${i.status}\\t${i.content?.number??''}\\t${i.title}`)"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Summarize project issue states",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const {execFileSync}=require(\"child_process\"); const x=JSON.parse(execFileSync(\"gh\",[\"project\",\"item-list\",\"2\",\"--owner\",\"baez91876-ship-it\",\"--format\",\"json\"],{encoding:\"utf8\"})); console.log(x.items.map(i=>[i.status,i.content?.number||\"\",i.title].join(\"\\t\")).join(\"\\n\"));"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Get GitHub Project ID",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"view",
+				"2",
+				"--owner",
+				"baez91876-ship-it",
+				"--format",
+				"json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Summarize all project tasks",
+			"type": "shell",
+			"command": "gh project item-list 2 --owner baez91876-ship-it --limit 200 --format json | ConvertFrom-Json | ForEach-Object { $_.items | Select-Object status, @{Name='Issue';Expression={$_.content.number}}, title | Format-Table -AutoSize }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List unfinished project tasks",
+			"type": "shell",
+			"command": "gh project item-list 2 --owner baez91876-ship-it --limit 200 --format json | ConvertFrom-Json | ForEach-Object { $_.items | Where-Object { $_.status -ne 'Finalizado' } | ForEach-Object { \"$($_.id)|$($_.status)|$($_.content.number)|$($_.title)\" } }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List unfinished task IDs",
+			"type": "shell",
+			"command": "gh project item-list 2 --owner baez91876-ship-it --limit 200 --format json | ConvertFrom-Json | ForEach-Object { $_.items | Where-Object { $_.status -ne 'Finalizado' } | ForEach-Object { Write-Output ($_.id + '|' + $_.status + '|' + $_.content.number + '|' + $_.title) } }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check GitHub item edit syntax",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"project",
+				"item-edit",
+				"--help"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Finalize verified project tasks",
+			"type": "shell",
+			"command": "$projectId = 'PVT_kwHODgfgq84BmDvg'; $fieldId = 'PVTSSF_lAHODgfgq84BmDvgzhkuNGY'; $optionId = '98236657'; $ids = @('PVTI_lAHODgfgq84BmDvgzg_L-vo','PVTI_lAHODgfgq84BmDvgzg_L_TM','PVTI_lAHODgfgq84BmDvgzg_L-8w','PVTI_lAHODgfgq84BmDvgzg_L_QA','PVTI_lAHODgfgq84BmDvgzg_MDUA','PVTI_lAHODgfgq84BmDvgzg_MDXM','PVTI_lAHODgfgq84BmDvgzg_MDbA','PVTI_lAHODgfgq84BmDvgzg_MDeQ','PVTI_lAHODgfgq84BmDvgzg_MDh4','PVTI_lAHODgfgq84BmDvgzg_MEkk','PVTI_lAHODgfgq84BmDvgzg_MEps','PVTI_lAHODgfgq84BmDvgzg_MFTQ','PVTI_lAHODgfgq84BmDvgzg_MFYI','PVTI_lAHODgfgq84BmDvgzg_MFbY','PVTI_lAHODgfgq84BmDvgzg_MFeg','PVTI_lAHODgfgq84BmDvgzg_MFjA','PVTI_lAHODgfgq84BmDvgzg_MGOI','PVTI_lAHODgfgq84BmDvgzg_MGS0','PVTI_lAHODgfgq84BmDvgzg_MGYg','PVTI_lAHODgfgq84BmDvgzg_MGeM','PVTI_lAHODgfgq84BmDvgzg_MGjw','PVTI_lAHODgfgq84BmDvgzg_MGpU','PVTI_lAHODgfgq84BmDvgzg_MHdY','PVTI_lAHODgfgq84BmDvgzg_MHq8','PVTI_lAHODgfgq84BmDvgzg_MHuo','PVTI_lAHODgfgq84BmDvgzg_MIi4','PVTI_lAHODgfgq84BmDvgzg_MJRM','PVTI_lAHODgfgq84BmDvgzg_MJgA'); foreach ($id in $ids) { gh project item-edit --id $id --project-id $projectId --field-id $fieldId --single-select-option-id $optionId; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check MongoDB integration tests",
+			"type": "shell",
+			"command": "$env:RUN_MONGO_INTEGRATION='1'; .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_mongodb_integration.py -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify finalized project tasks",
+			"type": "shell",
+			"command": "$wanted = @(12,13,14,15,28,29,30,31,32,46,47,56,57,58,59,60,70,71,72,73,74,75,85,87,88,99,111,114); gh project item-list 2 --owner baez91876-ship-it --limit 200 --format json | ConvertFrom-Json | ForEach-Object { $_.items | Where-Object { $wanted -contains $_.content.number } | ForEach-Object { Write-Output ($_.status + '|' + $_.content.number + '|' + $_.title) } }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check JavaScript syntax",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--check",
+				"docs\\script.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run unit and API tests",
+			"type": "shell",
+			"command": ".\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate whitespace in changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Recheck frontend JavaScript",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--check",
+				"docs\\script.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Final backend unittest verification",
+			"type": "shell",
+			"command": ".\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Final MongoDB integration verification",
+			"type": "shell",
+			"command": "$env:RUN_MONGO_INTEGRATION='1'; .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_mongodb_integration.py -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Final whitespace and conflict check",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review final workspace status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check repository status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review tracked change summary",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--stat"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check ignored local secrets",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"check-ignore",
+				"-v",
+				".env"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage repository changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"-A"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
