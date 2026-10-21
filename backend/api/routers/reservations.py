@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/reservations", tags=["Reservas"])
 
 ReservationState = Literal["confirmada", "pendiente", "cancelada", "finalizada"]
 MAX_PAGE_SIZE = 100
+HTTP_422_UNPROCESSABLE_CONTENT = getattr(status, "HTTP_422_UNPROCESSABLE_CONTENT", 422)
 
 
 def reservation_not_found() -> HTTPException:
@@ -142,7 +143,7 @@ def build_reservation(
         raise HTTPException(status.HTTP_409_CONFLICT, "El servicio seleccionado está inactivo.")
     if payload.huespedes > service["capacidad"]:
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            HTTP_422_UNPROCESSABLE_CONTENT,
             f"El servicio admite como máximo {service['capacidad']} huésped(es).",
         )
     if payload.modalidad == "noches":
@@ -150,11 +151,11 @@ def build_reservation(
         nights = (payload.salida - payload.entrada).days
         if payload.entrada < datetime.now(timezone.utc).date():
             raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_ENTITY, "La fecha de entrada no puede ser anterior a hoy."
+                HTTP_422_UNPROCESSABLE_CONTENT, "La fecha de entrada no puede ser anterior a hoy."
             )
         if nights < service["duracion"]:
             raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                HTTP_422_UNPROCESSABLE_CONTENT,
                 f"La estancia mínima es de {service['duracion']} noche(s).",
             )
         total = round(service["precio"] * nights, 2)
@@ -162,7 +163,7 @@ def build_reservation(
         assert payload.inicio is not None
         if payload.inicio.astimezone(timezone.utc) <= datetime.now(timezone.utc):
             raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_ENTITY, "La cita debe comenzar en una fecha y hora futuras."
+                HTTP_422_UNPROCESSABLE_CONTENT, "La cita debe comenzar en una fecha y hora futuras."
             )
         total = round(service["precio"], 2)
 
@@ -255,7 +256,7 @@ def list_reservations(
 ) -> dict[str, Any]:
     if desde and hasta and desde > hasta:
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, "La fecha 'desde' no puede ser posterior a 'hasta'."
+            HTTP_422_UNPROCESSABLE_CONTENT, "La fecha 'desde' no puede ser posterior a 'hasta'."
         )
     query = {} if user["rol"] == "administrador" else {"correo": user["correo"]}
     now = datetime.now(timezone.utc)
