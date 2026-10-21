@@ -52,7 +52,7 @@ def is_active_admin(user: Document) -> bool:
 
 
 def is_last_active_admin(database: MongoDatabase, user: Document) -> bool:
-    other_admins = {"rol": "administrador", "estado": "activo", "_id": {"$ne": user["_id"]}}
+    other_admins: Document = {"rol": "administrador", "estado": "activo", "_id": {"$ne": user["_id"]}}
     return is_active_admin(user) and database["usuarios"].count_documents(other_admins, limit=1) == 0
 
 

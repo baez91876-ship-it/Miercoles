@@ -1,12 +1,12 @@
 from datetime import date, datetime, time, timezone
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pymongo import ReturnDocument
 
 from ..database import Document
-from ..dependencies import AdminUser, CurrentUser, Database
+from ..dependencies import CurrentUser, Database
 from ..schemas import ReservationInput
 
 router = APIRouter(prefix="/api/reservations", tags=["Reservas"])
@@ -71,7 +71,7 @@ def ensure_available(
 
 
 def public_reservation(document: Document) -> dict[str, Any]:
-    result = {
+    result: dict[str, Any] = {
         "id": document["id"],
         "servicioId": document["servicioId"],
         "habitacionId": document["servicioId"],
@@ -163,20 +163,22 @@ def check_availability(
     user: CurrentUser,
     database: Database,
     servicio_id: str = Query(min_length=1, max_length=64),
-    modalidad: str = Query(pattern="^(noches|horario)$"),
+    modalidad: Literal["noches", "horario"] = Query(),
     entrada: date | None = None,
     salida: date | None = None,
     inicio: datetime | None = None,
     fin: datetime | None = None,
 ) -> dict[str, bool]:
     del user
-    payload = ReservationInput(
-        servicioId=servicio_id,
-        modalidad=modalidad,
-        entrada=entrada,
-        salida=salida,
-        inicio=inicio,
-        fin=fin,
+    payload = ReservationInput.model_validate(
+        {
+            "servicioId": servicio_id,
+            "modalidad": modalidad,
+            "entrada": entrada,
+            "salida": salida,
+            "inicio": inicio,
+            "fin": fin,
+        }
     )
     service = database["servicios"].find_one({"id": servicio_id})
     if service is None:

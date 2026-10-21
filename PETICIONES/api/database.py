@@ -1,5 +1,5 @@
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -86,7 +86,7 @@ def verificar_conexion(nombre_base_datos: str = MONGODB_DATABASE) -> bool:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if len(JWT_SECRET) < 32:
         raise RuntimeError("Configura JWT_SECRET con al menos 32 caracteres en el archivo .env.")
 

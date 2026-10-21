@@ -2,7 +2,7 @@ import base64
 import binascii
 import re
 from datetime import date, datetime
-from typing import Annotated, Any, ClassVar, Literal
+from typing import Annotated, Any, ClassVar, Literal, cast
 
 from pydantic import AfterValidator, AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
@@ -89,11 +89,15 @@ class UpdateModel(APIModel):
     @model_validator(mode="before")
     @classmethod
     def reject_null_values(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            null_fields = [key for key, value in data.items() if value is None and key not in cls.nullable_fields]
-            if null_fields:
-                raise ValueError(f"Los campos enviados no pueden ser null: {', '.join(null_fields)}.")
-        return data
+        if not isinstance(data, dict):
+            return data
+        values = cast(dict[str, Any], data)
+        null_fields = [
+            key for key, value in values.items() if value is None and key not in cls.nullable_fields
+        ]
+        if null_fields:
+            raise ValueError(f"Los campos enviados no pueden ser null: {', '.join(null_fields)}.")
+        return values
 
 
 class RegisterInput(APIModel):
