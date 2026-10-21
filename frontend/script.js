@@ -3,6 +3,12 @@ const USERS_PER_PAGE = 5;
 const RESERVATIONS_PER_PAGE = 5;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const SERVICE_IMAGE_FALLBACKS = {
+  std: 'images/room-standard.svg',
+  dbl: 'images/room-double.svg',
+  jr: 'images/room-junior.svg',
+  ste: 'images/room-premium.svg',
+};
 const API_BASE_URL = window.HOTEL_API_BASE_URL || '';
 const apiState = { users: [], services: [], reservations: [], stats: null };
 
@@ -435,7 +441,7 @@ function renderRooms() {
     `;
 
     roomList.append(card);
-    if (room.imagen) card.prepend(serviceImage(room));
+    card.prepend(serviceImage(room));
     if (locallyAvailable) checkRoomAvailability(room.id, criteria, card);
   });
   if (!roomList.children.length) roomList.innerHTML = '<p class="empty-state">No hay servicios disponibles.</p>';
@@ -1102,7 +1108,7 @@ function logout() {
   bookingScreen.classList.add('hidden');
   authScreen.classList.remove('hidden');
   switchView('login');
-  document.title = 'Hotel Clara | Acceso';
+  document.title = 'Hotel Clara';
 }
 
 function togglePasswordVisibility(button) {
@@ -1324,7 +1330,7 @@ function navigateTo(page) {
   });
   bookingUserName.textContent = `Hola, ${user.nombre}`;
   document.querySelector('#account-role').textContent = admin ? 'Administrador' : 'Usuario';
-  document.title = `Hotel Clara | ${activePage === 'dashboard' ? 'Dashboard' : activePage === 'users' ? 'Usuarios' : activePage === 'services' ? 'Servicios' : 'Reservas'}`;
+  document.title = 'Hotel Clara';
   if (activePage === 'dashboard') renderDashboard();
   if (activePage === 'users') renderUsers();
   if (activePage === 'services') renderServices();
@@ -1604,10 +1610,23 @@ function setServicesMessage(message, success = false) {
 function serviceImage(service) {
   const image = document.createElement('img');
   image.className = 'service-image';
-  image.src = service.imagen;
   image.alt = service.nombre;
   image.loading = 'lazy';
+  setServiceImageSource(image, service);
   return image;
+}
+
+function setServiceImageSource(image, service) {
+  const fallback = SERVICE_IMAGE_FALLBACKS[service.id] || 'images/room-default.svg';
+  image.dataset.fallback = new URL(fallback, document.baseURI).href;
+  image.addEventListener('error', () => {
+    if (image.src !== image.dataset.fallback) {
+      image.src = image.dataset.fallback;
+      return;
+    }
+    image.remove();
+  });
+  image.src = service.imagen || fallback;
 }
 
 async function renderServices() {
@@ -1636,7 +1655,7 @@ async function renderServices() {
   services.forEach((service) => {
     const card = document.createElement('article');
     card.className = 'room-card service-card';
-    if (service.imagen) card.append(serviceImage(service));
+    card.append(serviceImage(service));
     const title = document.createElement('h3');
     title.textContent = service.nombre;
     const description = document.createElement('p');
@@ -1700,10 +1719,9 @@ function openServiceForm(id = null) {
       serviceForm.elements[field].value = service[field];
     });
     serviceImageData = service.imagen;
-    if (serviceImageData) {
-      document.querySelector('#service-image-preview').src = serviceImageData;
-      document.querySelector('#service-image-preview').classList.remove('hidden');
-    }
+    const preview = document.querySelector('#service-image-preview');
+    setServiceImageSource(preview, service);
+    preview.classList.remove('hidden');
   } else {
     serviceForm.elements.duracion.value = '1';
     serviceForm.elements.capacidad.value = '2';
