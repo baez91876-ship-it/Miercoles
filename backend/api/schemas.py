@@ -165,7 +165,7 @@ class ReservationInput(APIModel):
     observaciones: Annotated[str, Field(max_length=1000)] = ""
 
     @model_validator(mode="after")
-    def validate_schedule(self) -> ReservationInput:
+    def validate_schedule(self) -> "ReservationInput":
         if self.modalidad == "noches":
             if self.entrada is None or self.salida is None:
                 raise ValueError("Indica las fechas de entrada y salida.")

@@ -4,14 +4,14 @@
     {
       "label": "Crear entorno virtual e instalar dependencias",
       "type": "shell",
-      "command": "c:/python314/python.exe -m venv .venv; .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt; Remove-Item -LiteralPath PETICIONES\\VERIFICAR_MONGO.py.new -ErrorAction SilentlyContinue; .\\.venv\\Scripts\\python.exe -m PETICIONES.VERIFICAR_MONGO",
+      "command": "c:/python314/python.exe -m venv .venv; .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt; .\\.venv\\Scripts\\python.exe -m backend.verificar_mongo",
       "isBackground": false,
       "problemMatcher": []
     },
     {
       "label": "Ejecutar pruebas",
       "type": "shell",
-      "command": ".\\.venv\\Scripts\\python.exe -m pip install -r requirements-dev.txt; if ($?) { .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v }",
+      "command": ".\\.venv\\Scripts\\python.exe -m pip install -r requirements-dev.txt; if ($?) { .\\.venv\\Scripts\\python.exe -m unittest discover -s qa\\tests -v }",
       "isBackground": false,
       "problemMatcher": [],
       "group": "test"
@@ -19,7 +19,7 @@
     {
       "label": "Probar API contra MongoDB temporal",
       "type": "shell",
-      "command": "$env:RUN_MONGO_INTEGRATION='1'; .\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_mongodb_integration.py -v",
+      "command": "$env:RUN_MONGO_INTEGRATION='1'; .\\.venv\\Scripts\\python.exe -m unittest discover -s qa\\tests -p test_mongodb_integration.py -v",
       "isBackground": false,
       "problemMatcher": []
     },
@@ -30,7 +30,7 @@
       "args": [
         "-m",
         "uvicorn",
-        "PETICIONES.API:app",
+        "backend.app:app",
         "--reload"
       ],
       "isBackground": true,
@@ -42,7 +42,7 @@
       "command": "node",
       "args": [
         "--check",
-        "docs\\script.js"
+        "frontend\\script.js"
       ],
       "isBackground": false,
       "problemMatcher": []
@@ -52,7 +52,7 @@
       "type": "shell",
       "command": "node",
       "args": [
-        "scripts\\setup-local-env.js"
+        "backend\\scripts\\setup-local-env.js"
       ],
       "isBackground": false,
       "problemMatcher": []

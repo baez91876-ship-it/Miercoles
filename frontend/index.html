@@ -48,18 +48,18 @@
 
           <form id="login-form" class="auth-form" novalidate>
             <div class="field">
-              <label for="login-email">Correo electrónico</label>
-              <input id="login-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" />
+              <label for="login-email">Correo electrónico *</label>
+              <input id="login-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required />
               <small class="field-error" data-error-for="login-email"></small>
             </div>
 
             <div class="field">
               <div class="label-row">
-                <label for="login-password">Contraseña</label>
+                <label for="login-password">Contraseña *</label>
                 <button class="text-button" type="button" data-action="forgot">¿La olvidaste?</button>
               </div>
               <div class="password-field">
-                <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+                <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
                 <button class="password-toggle" type="button" aria-label="Mostrar contraseña" data-target="login-password">👁</button>
               </div>
               <small class="field-error" data-error-for="login-password"></small>
@@ -70,14 +70,14 @@
 
           <form id="register-form" class="auth-form hidden" novalidate>
             <div class="field">
-              <label for="register-name">Nombre completo</label>
-              <input id="register-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre" />
+              <label for="register-name">Nombre completo *</label>
+              <input id="register-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre" required />
               <small class="field-error" data-error-for="register-name"></small>
             </div>
 
             <div class="field">
-              <label for="register-email">Correo electrónico</label>
-              <input id="register-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" />
+              <label for="register-email">Correo electrónico *</label>
+              <input id="register-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required />
               <small class="field-error" data-error-for="register-email"></small>
             </div>
 
@@ -87,9 +87,9 @@
             </div>
 
             <div class="field">
-              <label for="register-password">Contraseña</label>
+              <label for="register-password">Contraseña *</label>
               <div class="password-field">
-                <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crea una contraseña" />
+                <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crea una contraseña" required />
                 <button class="password-toggle" type="button" aria-label="Mostrar contraseña" data-target="register-password">👁</button>
               </div>
               <small class="field-error" data-error-for="register-password"></small>
@@ -97,17 +97,17 @@
             </div>
 
             <div class="field">
-              <label for="register-confirm">Confirmar contraseña</label>
+              <label for="register-confirm">Confirmar contraseña *</label>
               <div class="password-field">
-                <input id="register-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" />
+                <input id="register-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" required />
                 <button class="password-toggle" type="button" aria-label="Mostrar contraseña" data-target="register-confirm">👁</button>
               </div>
               <small class="field-error" data-error-for="register-confirm"></small>
             </div>
 
             <label class="terms">
-              <input id="register-terms" type="checkbox" />
-              <span>Acepto los términos y condiciones.</span>
+              <input id="register-terms" type="checkbox" required />
+              <span>Acepto los términos y condiciones. *</span>
             </label>
             <small class="field-error terms-error" data-error-for="register-terms"></small>
 
@@ -228,10 +228,74 @@
       <section id="reservations-section" class="booking-section" aria-label="Mis reservas">
         <div class="section-head">
           <h3 id="reservations-title">Mis reservas <span id="reservation-count" class="count-badge">0</span></h3>
-          <button id="clear-reservations" class="ghost-button danger hidden" type="button">Eliminar todas</button>
         </div>
-        <div id="reservation-list" class="reservation-list"></div>
+        <form id="reservation-filters" class="reservation-filters" role="search" aria-label="Buscar y filtrar reservas" novalidate>
+          <div class="field">
+            <label for="reservations-search">Buscar</label>
+            <input id="reservations-search" type="search" maxlength="120" placeholder="Servicio, código u observaciones" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="reservations-status-filter">Estado</label>
+            <select id="reservations-status-filter">
+              <option value="">Todos los estados</option>
+              <option value="confirmada">Confirmada</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="cancelada">Cancelada</option>
+              <option value="finalizada">Finalizada</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="reservations-from">Desde</label>
+            <input id="reservations-from" type="date" />
+          </div>
+          <div class="field">
+            <label for="reservations-to">Hasta</label>
+            <input id="reservations-to" type="date" />
+          </div>
+          <button id="reservations-clear-filters" class="ghost-button" type="button">Limpiar filtros</button>
+        </form>
+        <div id="reservations-message" class="global-message" role="status" aria-live="polite"></div>
+        <div id="reservation-list" class="reservation-list" aria-live="polite"></div>
+        <nav class="pagination" aria-label="Paginación de reservas">
+          <button id="reservations-previous" class="ghost-button" type="button">Anterior</button>
+          <span id="reservations-page-info" role="status"></span>
+          <button id="reservations-next" class="ghost-button" type="button">Siguiente</button>
+        </nav>
       </section>
+
+      <dialog id="reservation-detail-dialog" class="reservation-dialog" aria-labelledby="reservation-detail-title">
+        <p class="eyebrow">DETALLE</p>
+        <h3 id="reservation-detail-title">Detalle de la reserva</h3>
+        <dl id="reservation-detail-list" class="detail-list"></dl>
+        <div class="quick-actions dialog-actions">
+          <button id="close-reservation-detail" class="ghost-button" type="button" autofocus>Cerrar</button>
+        </div>
+      </dialog>
+
+      <dialog id="update-reservation-dialog" class="reservation-dialog" aria-labelledby="update-reservation-title" aria-describedby="update-reservation-question">
+        <h3 id="update-reservation-title">Actualizar reserva</h3>
+        <p id="update-reservation-question">¿Está seguro de actualizar esta reserva?</p>
+        <dl id="update-reservation-summary" class="detail-list compact"></dl>
+        <div class="quick-actions dialog-actions">
+          <button id="abort-reservation-update" class="ghost-button neutral" type="button" autofocus>Cancelar</button>
+          <button id="confirm-reservation-update" class="room-button" type="button">Confirmar cambios</button>
+        </div>
+      </dialog>
+
+      <dialog id="cancel-reservation-dialog" class="reservation-dialog warning-dialog" aria-labelledby="cancel-reservation-title" aria-describedby="cancel-reservation-question">
+        <h3 id="cancel-reservation-title"><span class="warning-icon" aria-hidden="true">⚠</span> Cancelar reserva</h3>
+        <p id="cancel-reservation-question">¿Está seguro de cancelar esta reserva?</p>
+        <dl class="detail-list compact">
+          <div><dt>Servicio</dt><dd id="cancel-reservation-service"></dd></div>
+          <div><dt>Fecha</dt><dd id="cancel-reservation-date"></dd></div>
+          <div><dt>Hora</dt><dd id="cancel-reservation-time"></dd></div>
+        </dl>
+        <p class="field-hint">La reserva quedará en tu historial como cancelada y el horario se liberará para otras personas.</p>
+        <div class="quick-actions dialog-actions">
+          <button id="abort-reservation-cancel" class="ghost-button neutral" type="button" autofocus>No cancelar</button>
+          <button id="confirm-reservation-cancel" class="danger-button" type="button">Sí, cancelar</button>
+        </div>
+      </dialog>
       </div>
 
       <section id="users-page" class="app-page hidden" aria-labelledby="users-title">
@@ -282,7 +346,7 @@
           </div>
           <div class="field"><label for="service-category">Categoría *</label><input id="service-category" name="categoria" maxlength="60" placeholder="Habitación, suite..." required /><small class="field-error" data-error-for="service-category"></small></div>
           <div class="field"><label for="service-status">Estado</label><select id="service-status" name="estado"><option value="disponible">Disponible</option><option value="inactivo">Inactivo</option></select></div>
-          <div class="field"><label for="service-image">Imagen opcional</label><input id="service-image" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="service-image-hint" /><small id="service-image-hint" class="field-hint">PNG, JPEG o WebP hasta 1 MB; guardada solo en este navegador.</small><small class="field-error" data-error-for="service-image"></small><img id="service-image-preview" class="service-image hidden" alt="Vista previa del servicio" /><button id="remove-service-image" class="ghost-button" type="button">Quitar imagen</button></div>
+          <div class="field"><label for="service-image">Imagen opcional</label><input id="service-image" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="service-image-hint" /><small id="service-image-hint" class="field-hint">PNG, JPEG o WebP hasta 1 MB; guardada en el servidor.</small><small class="field-error" data-error-for="service-image"></small><img id="service-image-preview" class="service-image hidden" alt="Vista previa del servicio" /><button id="remove-service-image" class="ghost-button" type="button">Quitar imagen</button></div>
           <div class="quick-actions"><button class="room-button" type="submit">Guardar servicio</button><button id="cancel-service-edit" class="ghost-button" type="button">Cancelar</button></div>
         </form>
         <div class="user-filters">
@@ -295,7 +359,7 @@
           <div class="quick-actions"><button id="confirm-service-delete" class="ghost-button danger" type="button">Confirmar eliminación</button><button id="abort-service-delete" class="ghost-button" type="button" autofocus>Cancelar</button></div>
         </dialog>
       </section>
-      <footer class="booking-footer">© 2026 Hotel Clara · Datos guardados en este navegador</footer>
+      <footer class="booking-footer">© 2026 Hotel Clara · Datos guardados en el servidor</footer>
     </main>
   </body>
 </html>

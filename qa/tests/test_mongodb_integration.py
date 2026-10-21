@@ -9,10 +9,10 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from pymongo import MongoClient
 
-from PETICIONES.api import database as database_module
-from PETICIONES.api import main as main_module
-from PETICIONES.api.main import app
-from PETICIONES.api.settings import MONGODB_URI
+from backend.api import database as database_module
+from backend.api import main as main_module
+from backend.api.main import app
+from backend.api.settings import MONGODB_URI
 
 
 @unittest.skipUnless(
@@ -34,10 +34,10 @@ class MongoApiIntegrationTests(unittest.TestCase):
             patch.object(database_module, "JWT_SECRET", "test-only-secret-at-least-32-characters")
         )
         self.patches.enter_context(
-            patch("PETICIONES.api.security.JWT_SECRET", "test-only-secret-at-least-32-characters")
+            patch("backend.api.security.JWT_SECRET", "test-only-secret-at-least-32-characters")
         )
         self.patches.enter_context(
-            patch("PETICIONES.api.routers.auth.ADMIN_SETUP_KEY", "test-bootstrap-key")
+            patch("backend.api.routers.auth.ADMIN_SETUP_KEY", "test-bootstrap-key")
         )
 
         self.mongo = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
@@ -122,6 +122,43 @@ class MongoApiIntegrationTests(unittest.TestCase):
             ).status_code,
             200,
         )
+        detail = self.client.get(f"/api/reservations/{reservation_id}", headers=client_headers)
+        self.assertEqual(detail.json()["reserva"]["observaciones"], "Estancia editada")
+
+        # HUS-09: la cancelación se guarda en MongoDB, conserva la reserva y libera el horario.
+        cancelled = self.client.patch(
+            f"/api/reservations/{reservation_id}/cancelar", headers=client_headers
+        )
+        self.assertEqual(cancelled.status_code, 200)
+        self.assertEqual(cancelled.json()["reserva"]["estado"], "cancelada")
+        stored = self.mongo[self.database_name]["reservas"].find_one({"id": reservation_id})
+        self.assertEqual(stored["estado"], "cancelada")
+        self.assertIsNotNone(stored["canceladaEn"])
+        self.assertEqual(
+            self.client.patch(
+                f"/api/reservations/{reservation_id}/cancelar", headers=client_headers
+            ).status_code,
+            409,
+        )
+        self.assertEqual(
+            self.client.get(
+                "/api/reservations", headers=client_headers, params={"estado": "cancelada"}
+            ).json()["total"],
+            1,
+        )
+        rebooked = self.client.post(
+            "/api/reservations",
+            headers=admin_headers,
+            json={"servicioId": "std", "modalidad": "noches", "entrada": "2099-04-11", "salida": "2099-04-13"},
+        )
+        self.assertEqual(rebooked.status_code, 201)
+        self.assertEqual(
+            self.client.delete(
+                f"/api/reservations/{rebooked.json()['reserva']['id']}", headers=admin_headers
+            ).status_code,
+            204,
+        )
+
         self.assertEqual(
             self.client.delete(
                 f"/api/reservations/{reservation_id}", headers=client_headers

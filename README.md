@@ -3,6 +3,13 @@
 Interfaz web y API REST en FastAPI para usuarios, catálogo de servicios y
 reservas persistidas en MongoDB.
 
+## Estructura del proyecto
+
+- `backend/` — API FastAPI (`api/`), punto de entrada `app.py`, verificación de MongoDB y script de configuración local.
+- `frontend/` — interfaz web (`index.html`, `script.js`, `styles.css`) servida por FastAPI.
+- `ui-ux/` — historias de usuario, tareas y evidencias de diseño UI/UX.
+- `qa/` — pruebas automatizadas (`tests/`) y credenciales/guía de prueba.
+
 ## Ejecutar localmente
 
 1. Inicia MongoDB local (`mongodb://localhost:27017/`).
@@ -26,7 +33,7 @@ dependencias desde la raíz:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python -m uvicorn PETICIONES.API:app --reload
+python -m uvicorn backend.app:app --reload
 ```
 
 Antes de ejecutar el servidor manualmente, configura `JWT_SECRET` (mínimo 32
@@ -42,8 +49,14 @@ caracteres) y `ADMIN_SETUP_KEY` en `.env`. No compartas ni subas ese archivo.
   fecha y hora de inicio y fin. El servidor valida disponibilidad, capacidad,
   servicio activo, fechas y solapamientos; calcula el total según el precio
   actual del servicio.
-- Clientes consultan y gestionan sus reservas. Los administradores consultan
-  todas y pueden modificarlas; no pueden eliminar las reservas ajenas.
+- Clientes consultan sus reservas con buscador, filtros por estado y fecha,
+  paginación y vista detalle. Los administradores consultan todas.
+- Editar pide confirmación ("¿Está seguro de actualizar esta reserva?"). Las
+  reservas canceladas o finalizadas no se pueden modificar.
+- Cancelar es lógico: la reserva queda con estado `cancelada` en el historial
+  y su horario se libera. Pueden cancelar el propietario o un administrador.
+  Solo el propietario puede eliminar del historial una reserva cancelada o
+  finalizada.
 - Catálogo estándar sembrado una sola vez en una base nueva. No se vuelve a
   recrear si se elimina posteriormente.
 
@@ -61,7 +74,15 @@ con los dominios autorizados.
 - Usuarios: `GET`, `POST`, `PUT` y `DELETE /api/users`.
 - Servicios: `GET`, `POST`, `PUT` y `DELETE /api/services`.
 - Reservas: `GET`, `POST`, `PUT` y `DELETE /api/reservations`;
-  `GET /api/reservations/availability`.
+  `GET /api/reservations/availability`; `GET /api/reservations/{id}` (detalle);
+  `PATCH /api/reservations/{id}/cancelar` (cancelación lógica).
+
+`GET /api/reservations` acepta filtros opcionales: `q` (busca en servicio,
+código, correo y observaciones), `estado` (`confirmada`, `pendiente`,
+`cancelada`, `finalizada`), `desde` y `hasta` (AAAA-MM-DD), `utc_offset`
+(minutos respecto a UTC del navegador, p. ej. `-300` en Bogotá) y paginación
+con `skip` y `limit` (máx. 100). Devuelve `items` y `total`. Sin parámetros
+devuelve todas las reservas visibles para el usuario.
 
 Las operaciones administrativas requieren un token Bearer. Los endpoints
 `GET /api/services` y `GET /api/reservations` aplican las reglas de acceso del
@@ -73,7 +94,7 @@ Instala las dependencias de desarrollo y ejecuta las pruebas unitarias y HTTP:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
-python -m unittest discover -s tests -v
+python -m unittest discover -s qa/tests -v
 ```
 
 Para probar persistencia real, en VS Code ejecuta **Probar API contra MongoDB
