@@ -848,6 +848,41 @@ dialog::backdrop { background: rgba(30, 41, 59, 0.5); }
 .password-field input { padding-right: 44px; }
 .reservation-card > div { min-width: 0; overflow-wrap: anywhere; }
 
+/* HUS-07 · HUS-08 · HUS-09 — Consultar, actualizar y cancelar reservas */
+.reservation-filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 18px; align-items: end; margin: 20px 0 16px; }
+.reservation-filters input { width: 100%; min-width: 0; padding: 11px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; }
+.reservation-filters input:focus { outline: none; border-color: var(--primary); }
+.reservation-filters input.invalid { border-color: var(--error); }
+#reservations-message:empty { display: none; }
+#reservations-message { margin-bottom: 12px; }
+.reservation-main { flex: 1 1 320px; }
+.reservation-fields { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 8px 0 0; }
+.reservation-fields > div { flex: 1 1 110px; min-width: 0; }
+.reservation-fields > div:first-child { flex: 2 1 230px; }
+.reservation-fields dt, .detail-list dt { color: var(--muted); font: 10px 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.reservation-fields dd { margin: 2px 0 0; color: var(--ink); font-size: 13px; }
+.reservation-actions { flex-wrap: wrap; justify-content: flex-end; }
+.reservation-card.state-finalizada .reservation-state { background: #475569; }
+.reservation-state.inline { display: inline-block; color: var(--surface); }
+.reservation-state.state-confirmada { background: var(--success); }
+.reservation-state.state-pendiente { background: var(--warning); color: var(--ink); }
+.reservation-edit-title { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 13px; }
+.reservation-edit .edit-notes { grid-column: 1 / -1; }
+.reservation-edit .reservation-actions { grid-column: 1 / -1; justify-content: flex-start; }
+.reservation-edit .invalid { border-color: var(--error) !important; }
+.reservation-dialog h3 { margin: 4px 0 12px; }
+.reservation-dialog .eyebrow { margin: 0; }
+.detail-list { display: grid; gap: 10px; margin: 16px 0; }
+.detail-list > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.detail-list dd { margin: 0; font-size: 14px; }
+.detail-list.compact { gap: 6px; }
+.dialog-actions { justify-content: flex-end; margin-top: 18px; }
+.warning-dialog { border-top: 4px solid var(--warning); }
+.warning-icon { color: var(--warning); }
+.ghost-button.neutral { color: var(--muted); border-color: var(--muted); }
+.danger-button { padding: 10px 16px; border: 1px solid var(--error); background: var(--error); color: var(--surface); font-size: 12px; font-weight: 700; cursor: pointer; }
+.danger-button:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
+
 @media (max-width: 800px) {
   .app-shell {
     display: block;
@@ -904,6 +939,10 @@ dialog::backdrop { background: rgba(30, 41, 59, 0.5); }
   }
 
   .user-filters { grid-template-columns: 1fr; }
+  .reservation-filters { grid-template-columns: 1fr 1fr; }
+  .reservation-filters .field:first-child, #reservations-clear-filters { grid-column: 1 / -1; }
+  .reservation-actions { justify-content: flex-start; }
+  .detail-list > div { grid-template-columns: 1fr; gap: 2px; }
   .auth-topline { flex-wrap: wrap; gap: 10px; }
   .reservation-actions, .reservation-title { flex-wrap: wrap; }
   .reservation-code { overflow-wrap: anywhere; }

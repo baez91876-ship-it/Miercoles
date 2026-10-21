@@ -19,7 +19,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -34,4 +34,4 @@ def health(database: Database) -> dict[str, str]:
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-app.mount("/", StaticFiles(directory=PROJECT_ROOT / "docs", html=True), name="frontend")
+app.mount("/", StaticFiles(directory=PROJECT_ROOT / "frontend", html=True), name="frontend")

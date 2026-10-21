@@ -5,8 +5,8 @@ import unittest
 
 from pydantic import ValidationError
 
-from PETICIONES.api.settings import MAX_IMAGE_SIZE_BYTES
-from PETICIONES.api.schemas import (
+from backend.api.settings import MAX_IMAGE_SIZE_BYTES
+from backend.api.schemas import (
     RegisterInput,
     ServiceInput,
     ServiceUpdateInput,

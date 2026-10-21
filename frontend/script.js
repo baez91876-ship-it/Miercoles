@@ -1,5 +1,6 @@
 const SESSION_KEY = 'session_token';
 const USERS_PER_PAGE = 5;
+const RESERVATIONS_PER_PAGE = 5;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 const API_BASE_URL = window.HOTEL_API_BASE_URL || '';
@@ -55,7 +56,16 @@ const guestsInput = document.querySelector('#search-guests');
 const roomList = document.querySelector('#room-list');
 const reservationList = document.querySelector('#reservation-list');
 const reservationCount = document.querySelector('#reservation-count');
-const clearReservationsButton = document.querySelector('#clear-reservations');
+const reservationsMessage = document.querySelector('#reservations-message');
+const reservationFilters = {
+  search: document.querySelector('#reservations-search'),
+  status: document.querySelector('#reservations-status-filter'),
+  from: document.querySelector('#reservations-from'),
+  to: document.querySelector('#reservations-to'),
+};
+const reservationDetailDialog = document.querySelector('#reservation-detail-dialog');
+const updateReservationDialog = document.querySelector('#update-reservation-dialog');
+const cancelReservationDialog = document.querySelector('#cancel-reservation-dialog');
 const globalMessage = document.querySelector('#global-message');
 const title = document.querySelector('#auth-title');
 const subtitle = document.querySelector('#auth-subtitle');
@@ -230,6 +240,13 @@ async function handleLoginSubmit(event) {
 let currentUser = null;
 let editingReservationId = null;
 let pendingDeleteId = null;
+let pendingUpdate = null;
+let pendingCancelId = null;
+let reservationsPage = 1;
+let reservationTotal = 0;
+let reservationPageItems = [];
+let reservationRequestId = 0;
+let reservationSearchTimer = null;
 
 function getReservations() {
   return apiState.reservations;
@@ -373,6 +390,7 @@ function isRoomTaken(roomId, criteria, reservations, ignoreId) {
     : Date.parse(`${criteria.checkout}T00:00:00Z`);
   return reservations.some((reservation) => {
     if ((reservation.servicioId || reservation.habitacionId) !== roomId || reservation.id === ignoreId) return false;
+    if (reservation.estado === 'cancelada') return false;
     const [start, end] = reservationInterval(reservation);
     return candidateStart < end && candidateEnd > start;
   });
@@ -454,144 +472,325 @@ async function checkRoomAvailability(roomId, criteria, card) {
   }
 }
 
-function renderReservations() {
+/* HUS-07 Consultar · HUS-08 Actualizar · HUS-09 Cancelar */
+
+const STATE_LABELS = {
+  confirmada: 'Confirmada',
+  pendiente: 'Pendiente',
+  cancelada: 'Cancelada',
+  finalizada: 'Finalizada',
+};
+
+function setReservationsMessage(message, success = false) {
+  reservationsMessage.textContent = message;
+  reservationsMessage.className = `global-message${success ? ' success' : ''}`;
+}
+
+function formatMoney(value) {
+  return `$${Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}`;
+}
+
+function formatShortDate(value) {
+  return new Date(value).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatTime(value) {
+  return new Date(value).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateTime(value) {
+  return value ? new Date(value).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+
+function timeForInput(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+/** Fecha, hora y tipo legibles para una reserva (o para un payload de edición). */
+function reservationSchedule(reservation) {
+  if (reservation.modalidad === 'horario') {
+    const startDay = formatShortDate(reservation.inicio);
+    const endDay = formatShortDate(reservation.fin);
+    return {
+      tipo: 'Cita por horario',
+      fecha: startDay === endDay ? startDay : `${startDay} → ${endDay}`,
+      hora: `${formatTime(reservation.inicio)} – ${formatTime(reservation.fin)}`,
+    };
+  }
+  const nights = nightsBetween(reservation.entrada, reservation.salida);
+  return {
+    tipo: 'Estancia por noches',
+    fecha: `${formatDate(reservation.entrada)} → ${formatDate(reservation.salida)} · ${nights} noche(s)`,
+    hora: 'No aplica',
+  };
+}
+
+function isActiveReservation(reservation) {
+  return ['confirmada', 'pendiente'].includes(reservationStatus(reservation));
+}
+
+function canManageReservation(reservation) {
+  return Boolean(
+    reservation && currentUser && currentUser.estado === 'activo' &&
+    (isAdministrator() || reservation.correo === currentUser.correo),
+  );
+}
+
+function findReservation(id) {
+  return reservationPageItems.find((candidate) => candidate.id === id)
+    || getReservations().find((candidate) => candidate.id === id);
+}
+
+function replaceReservation(updated) {
+  const replace = (list) => list.map((candidate) => (candidate.id === updated.id ? updated : candidate));
+  apiState.reservations = replace(getReservations());
+  reservationPageItems = replace(reservationPageItems);
+}
+
+function reservationFiltersActive() {
+  return Boolean(
+    reservationFilters.search.value.trim() || reservationFilters.status.value ||
+    reservationFilters.from.value || reservationFilters.to.value,
+  );
+}
+
+function resetReservationFilters() {
+  reservationFilters.search.value = '';
+  reservationFilters.status.value = '';
+  reservationFilters.from.value = '';
+  reservationFilters.to.value = '';
+  reservationFilters.from.classList.remove('invalid');
+  reservationFilters.to.classList.remove('invalid');
+  reservationsPage = 1;
+}
+
+function reservationQueryParams() {
+  const params = new URLSearchParams({
+    skip: String((reservationsPage - 1) * RESERVATIONS_PER_PAGE),
+    limit: String(RESERVATIONS_PER_PAGE),
+    utc_offset: String(-new Date().getTimezoneOffset()),
+  });
+  const search = reservationFilters.search.value.trim();
+  if (search) params.set('q', search);
+  if (reservationFilters.status.value) params.set('estado', reservationFilters.status.value);
+  if (reservationFilters.from.value) params.set('desde', reservationFilters.from.value);
+  if (reservationFilters.to.value) params.set('hasta', reservationFilters.to.value);
+  return params;
+}
+
+async function renderReservations() {
+  if (!currentUser) return;
   const admin = isAdministrator();
-  const reservations = getReservations().filter((reservation) => admin || reservation.correo === currentUser?.correo);
   document.querySelector('#reservations-title').firstChild.textContent = admin ? 'Todas las reservas ' : 'Mis reservas ';
   document.querySelector('#reservations-section').setAttribute('aria-label', admin ? 'Todas las reservas' : 'Mis reservas');
+  reservationFilters.search.placeholder = admin ? 'Servicio, código, correo u observaciones' : 'Servicio, código u observaciones';
 
-  reservationList.innerHTML = '';
-  reservationCount.textContent = String(reservations.length);
-  clearReservationsButton.classList.toggle('hidden', !reservations.some((reservation) => reservation.correo === currentUser?.correo));
-  clearReservationsButton.dataset.confirming = 'false';
-  clearReservationsButton.textContent = admin ? 'Eliminar mis reservas' : 'Eliminar todas';
-
-  if (!reservations.length) {
-    reservationList.innerHTML = `<p class="empty-state">${admin ? 'Todavía no hay reservas.' : 'Todavía no tienes reservas.'}</p>`;
+  const from = reservationFilters.from.value;
+  const to = reservationFilters.to.value;
+  const invalidRange = Boolean(from && to && from > to);
+  reservationFilters.from.classList.toggle('invalid', invalidRange);
+  reservationFilters.to.classList.toggle('invalid', invalidRange);
+  if (invalidRange) {
+    setReservationsMessage('La fecha "Desde" no puede ser posterior a "Hasta".');
     return;
   }
 
-  reservations
-    .sort((a, b) => String(a.inicio || a.entrada).localeCompare(String(b.inicio || b.entrada)))
-    .forEach((reservation) => {
-      const item = document.createElement('article');
-      item.className = 'reservation-card';
+  const requestId = ++reservationRequestId;
+  let result;
+  try {
+    result = await apiRequest(`/api/reservations?${reservationQueryParams()}`);
+  } catch (error) {
+    if (requestId === reservationRequestId) displayApiError(error, setReservationsMessage);
+    return;
+  }
+  if (requestId !== reservationRequestId || !currentUser) return;
 
-      if (reservation.id === editingReservationId) {
-        item.classList.add('editing');
-        item.innerHTML = `
-          <form class="reservation-edit" data-save="${reservation.id}" novalidate>
-            <div class="field">
-              <label for="edit-mode">Tipo de reserva</label>
-              <select id="edit-mode" name="modalidad">
-                <option value="noches"${reservation.modalidad !== 'horario' ? ' selected' : ''}>Por noches</option>
-                <option value="horario"${reservation.modalidad === 'horario' ? ' selected' : ''}>Por horario</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="edit-room">Habitación</label>
-              <select id="edit-room" name="room">
-                ${getRooms().filter((room) => room.estado === 'disponible' || room.id === (reservation.servicioId || reservation.habitacionId)).map(
-                  (room) =>
-                    `<option value="${escapeHTML(room.id)}"${room.id === (reservation.servicioId || reservation.habitacionId) ? ' selected' : ''}>${escapeHTML(room.nombre)}${room.estado === 'inactivo' ? ' (inactivo)' : ''}</option>`,
-                ).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <label for="edit-checkin">Fecha de inicio / entrada *</label>
-              <input id="edit-checkin" name="checkin" type="date" value="${reservation.modalidad === 'horario' ? dateForInput(reservation.inicio) : reservation.entrada}" required />
-            </div>
-            <div class="field">
-              <label for="edit-checkout">Fecha de fin / salida *</label>
-              <input id="edit-checkout" name="checkout" type="date" value="${reservation.modalidad === 'horario' ? dateForInput(reservation.fin) : reservation.salida}" required />
-            </div>
-            <div class="field">
-              <label for="edit-start-time">Hora de inicio (para horario)</label>
-              <input id="edit-start-time" name="startTime" type="time" value="${reservation.inicio ? new Date(reservation.inicio).toTimeString().slice(0, 5) : ''}" />
-            </div>
-            <div class="field">
-              <label for="edit-end-time">Hora de fin (para horario)</label>
-              <input id="edit-end-time" name="endTime" type="time" value="${reservation.fin ? new Date(reservation.fin).toTimeString().slice(0, 5) : ''}" />
-            </div>
-            <div class="field">
-              <label for="edit-guests">Huéspedes</label>
-              <select id="edit-guests" name="guests">
-                ${[1, 2, 3, 4]
-                  .map((n) => `<option value="${n}"${n === reservation.huespedes ? ' selected' : ''}>${n} huésped(es)</option>`)
-                  .join('')}
-              </select>
-            </div>
-            <div class="reservation-actions">
-              <button class="room-button" type="submit">Guardar</button>
-              <button class="ghost-button" type="button" data-cancel-edit="1">Descartar</button>
-            </div>
-          </form>
-        `;
-      } else {
-        const nights = reservation.modalidad === 'horario' ? 0 : nightsBetween(reservation.entrada, reservation.salida);
-        const dateLabel = reservation.modalidad === 'horario'
-          ? `${new Date(reservation.inicio).toLocaleString('es-ES')} → ${new Date(reservation.fin).toLocaleString('es-ES')} · Cita`
-          : `${formatDate(reservation.entrada)} → ${formatDate(reservation.salida)} · ${nights} noche(s)`;
-        const estado = reservationState(reservation);
-        const confirming = reservation.id === pendingDeleteId;
+  const pages = Math.max(1, Math.ceil(result.total / RESERVATIONS_PER_PAGE));
+  if (reservationsPage > pages) {
+    reservationsPage = pages;
+    await renderReservations();
+    return;
+  }
+  reservationPageItems = result.items;
+  reservationTotal = result.total;
+  drawReservationList();
+}
 
-        item.classList.add(`state-${estado.toLowerCase().replace(' ', '-')}`);
-        item.innerHTML = `
-          <div>
-            <div class="reservation-title">
-              <h4>${escapeHTML(reservation.habitacion)}</h4>
-              <span class="reservation-state">${estado}</span>
-            </div>
-            <p>${dateLabel} · ${reservation.huespedes} huésped(es)</p>
-            ${reservation.observaciones ? `<p>${escapeHTML(reservation.observaciones)}</p>` : ''}
-            ${admin ? `<p>Cliente: ${escapeHTML(reservation.correo)}</p>` : ''}
-            <p class="reservation-code">Código ${reservation.id.toUpperCase()}</p>
-          </div>
-          <div class="reservation-actions">
-            <span class="room-price">$${reservation.total}</span>
-            <button class="ghost-button" type="button" data-edit="${reservation.id}">Editar</button>
-            ${
-              reservation.correo !== currentUser?.correo ? '' : confirming
-                ? `<button class="ghost-button danger" type="button" data-confirm-delete="${reservation.id}">Confirmar</button>
-                   <button class="ghost-button" type="button" data-abort-delete="1">No</button>`
-                : `<button class="ghost-button danger" type="button" data-delete="${reservation.id}">Eliminar</button>`
-            }
-          </div>
-        `;
-      }
+function drawReservationList() {
+  const admin = isAdministrator();
+  const total = reservationTotal;
+  const pages = Math.max(1, Math.ceil(total / RESERVATIONS_PER_PAGE));
+  reservationList.replaceChildren();
+  reservationCount.textContent = String(total);
+  document.querySelector('#reservations-page-info').textContent = `Página ${reservationsPage} de ${pages} · ${total} reserva(s)`;
+  document.querySelector('#reservations-previous').disabled = reservationsPage === 1;
+  document.querySelector('#reservations-next').disabled = reservationsPage >= pages;
 
-      reservationList.append(item);
-    });
+  if (!reservationPageItems.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-state';
+    empty.textContent = reservationFiltersActive()
+      ? 'No hay reservas que coincidan con la búsqueda o los filtros.'
+      : admin ? 'Todavía no hay reservas.' : 'Todavía no tienes reservas.';
+    reservationList.append(empty);
+    return;
+  }
+
+  reservationPageItems.forEach((reservation) => {
+    const item = document.createElement('article');
+    item.className = 'reservation-card';
+    item.dataset.reservation = reservation.id;
+    if (reservation.id === editingReservationId && canManageReservation(reservation) && isActiveReservation(reservation)) {
+      item.classList.add('editing');
+      item.innerHTML = reservationEditForm(reservation);
+    } else {
+      item.innerHTML = reservationCardContent(reservation, admin);
+      item.classList.add(`state-${reservationStatus(reservation)}`);
+    }
+    reservationList.append(item);
+  });
+}
+
+function reservationCardContent(reservation, admin) {
+  const status = reservationStatus(reservation);
+  const schedule = reservationSchedule(reservation);
+  const manageable = canManageReservation(reservation) && isActiveReservation(reservation);
+  const ownHistory = reservation.correo === currentUser?.correo && !isActiveReservation(reservation);
+  const confirmingDelete = reservation.id === pendingDeleteId;
+  const id = escapeHTML(reservation.id);
+  const service = escapeHTML(reservation.habitacion);
+  let historyActions = '';
+  if (ownHistory) {
+    historyActions = confirmingDelete
+      ? `<button class="ghost-button danger" type="button" data-confirm-delete="${id}">Confirmar eliminación</button>
+         <button class="ghost-button" type="button" data-abort-delete="1">No</button>`
+      : `<button class="ghost-button danger" type="button" data-delete="${id}" aria-label="Eliminar del historial ${service}">Eliminar del historial</button>`;
+  }
+  return `
+    <div class="reservation-main">
+      <div class="reservation-title">
+        <h4>${service}</h4>
+        <span class="reservation-state">${STATE_LABELS[status]}</span>
+      </div>
+      <dl class="reservation-fields">
+        <div><dt>Fecha</dt><dd>${escapeHTML(schedule.fecha)}</dd></div>
+        <div><dt>Hora</dt><dd>${escapeHTML(schedule.hora)}</dd></div>
+        <div><dt>Huéspedes</dt><dd>${Number(reservation.huespedes)}</dd></div>
+        ${admin ? `<div><dt>Usuario</dt><dd>${escapeHTML(reservation.correo)}</dd></div>` : ''}
+      </dl>
+      <p class="reservation-code">Código ${escapeHTML(reservation.id.slice(0, 8).toUpperCase())}</p>
+    </div>
+    <div class="reservation-actions">
+      <span class="room-price">${formatMoney(reservation.total)}</span>
+      <button class="ghost-button" type="button" data-detail="${id}" aria-label="Ver detalle de ${service}">Ver detalle</button>
+      ${manageable ? `<button class="ghost-button" type="button" data-edit="${id}" aria-label="Editar ${service}">Editar</button>` : ''}
+      ${manageable ? `<button class="ghost-button danger" type="button" data-cancel-reservation="${id}" aria-label="Cancelar reserva de ${service}">Cancelar reserva</button>` : ''}
+      ${historyActions}
+    </div>
+  `;
+}
+
+function reservationEditForm(reservation) {
+  const isAppointment = reservation.modalidad === 'horario';
+  const currentRoom = reservation.servicioId || reservation.habitacionId;
+  const rooms = getRooms()
+    .filter((room) => room.estado === 'disponible' || room.id === currentRoom)
+    .map((room) => `<option value="${escapeHTML(room.id)}"${room.id === currentRoom ? ' selected' : ''}>${escapeHTML(room.nombre)}${room.estado === 'inactivo' ? ' (inactivo)' : ''}</option>`)
+    .join('');
+  return `
+    <form class="reservation-edit" data-save="${escapeHTML(reservation.id)}" novalidate aria-label="Editar reserva ${escapeHTML(reservation.habitacion)}">
+      <p class="reservation-edit-title">
+        Editando reserva <strong>${escapeHTML(reservation.id.slice(0, 8).toUpperCase())}</strong>
+        · Estado: <span class="reservation-state inline state-${reservationStatus(reservation)}">${STATE_LABELS[reservationStatus(reservation)]}</span>
+      </p>
+      <div class="field">
+        <label for="edit-mode">Tipo de reserva</label>
+        <select id="edit-mode" name="modalidad">
+          <option value="noches"${isAppointment ? '' : ' selected'}>Por noches</option>
+          <option value="horario"${isAppointment ? ' selected' : ''}>Por horario</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="edit-room">Servicio (habitación)</label>
+        <select id="edit-room" name="room">${rooms}</select>
+      </div>
+      <div class="field">
+        <label for="edit-checkin">${isAppointment ? 'Fecha de inicio' : 'Entrada'} *</label>
+        <input id="edit-checkin" name="checkin" type="date" value="${isAppointment ? dateForInput(reservation.inicio) : reservation.entrada}" required />
+      </div>
+      <div class="field">
+        <label for="edit-checkout">${isAppointment ? 'Fecha de fin' : 'Salida'} *</label>
+        <input id="edit-checkout" name="checkout" type="date" value="${isAppointment ? dateForInput(reservation.fin) : reservation.salida}" required />
+      </div>
+      <div class="field edit-time${isAppointment ? '' : ' hidden'}">
+        <label for="edit-start-time">Hora de inicio *</label>
+        <input id="edit-start-time" name="startTime" type="time" value="${timeForInput(reservation.inicio)}" />
+      </div>
+      <div class="field edit-time${isAppointment ? '' : ' hidden'}">
+        <label for="edit-end-time">Hora de fin *</label>
+        <input id="edit-end-time" name="endTime" type="time" value="${timeForInput(reservation.fin)}" />
+      </div>
+      <div class="field">
+        <label for="edit-guests">Huéspedes</label>
+        <select id="edit-guests" name="guests">
+          ${[1, 2, 3, 4].map((n) => `<option value="${n}"${n === reservation.huespedes ? ' selected' : ''}>${n} huésped(es)</option>`).join('')}
+        </select>
+      </div>
+      <div class="field edit-notes">
+        <label for="edit-notes">Observaciones</label>
+        <textarea id="edit-notes" name="observaciones" maxlength="1000" rows="2">${escapeHTML(reservation.observaciones || '')}</textarea>
+      </div>
+      <div class="reservation-actions">
+        <button class="room-button" type="submit">Guardar cambios</button>
+        <button class="ghost-button" type="button" data-cancel-edit="1">Cancelar</button>
+      </div>
+    </form>
+  `;
+}
+
+function toggleEditMode(form) {
+  const isAppointment = form.elements.modalidad.value === 'horario';
+  form.querySelectorAll('.edit-time').forEach((field) => field.classList.toggle('hidden', !isAppointment));
+  form.querySelector('label[for="edit-checkin"]').textContent = `${isAppointment ? 'Fecha de inicio' : 'Entrada'} *`;
+  form.querySelector('label[for="edit-checkout"]').textContent = `${isAppointment ? 'Fecha de fin' : 'Salida'} *`;
 }
 
 function startEditing(reservationId) {
-  if (!editableReservation(reservationId)) return;
+  const reservation = editableReservation(reservationId);
+  if (!reservation) return;
   editingReservationId = reservationId;
   pendingDeleteId = null;
-  setBookingMessage('');
-  renderReservations();
+  setReservationsMessage('');
+  drawReservationList();
+  reservationList.querySelector('#edit-room')?.focus();
 }
 
 function editableReservation(id) {
-  const reservation = getReservations().find((candidate) => candidate.id === id);
-  if (!currentUser || currentUser.estado !== 'activo' || !reservation ||
-      (currentUser.rol !== 'administrador' && reservation.correo !== currentUser.correo)) {
-    setBookingMessage('No tienes permiso para editar esta reserva o ya no existe.');
+  const reservation = findReservation(id);
+  if (!canManageReservation(reservation)) {
+    setReservationsMessage('No tienes permiso para modificar esta reserva o ya no existe.');
+    return null;
+  }
+  if (!isActiveReservation(reservation)) {
+    setReservationsMessage(`No se puede modificar una reserva ${reservationStatus(reservation)}.`);
     return null;
   }
   return reservation;
 }
 
 function ownReservation(id) {
-  const reservation = getReservations().find((candidate) => candidate.id === id && candidate.correo === currentUser?.correo);
-  if (!currentUser || currentUser.estado !== 'activo' || !reservation) {
-    setBookingMessage('No tienes permiso para eliminar esta reserva o ya no existe.');
+  const reservation = findReservation(id);
+  if (!currentUser || currentUser.estado !== 'activo' || !reservation || reservation.correo !== currentUser.correo) {
+    setReservationsMessage('No tienes permiso para eliminar esta reserva o ya no existe.');
     return null;
   }
   return reservation;
 }
 
-async function saveEditedReservation(reservationId, form) {
+/** Valida el formulario de edición y, si todo está bien, pide confirmación (HUS-08). */
+function saveEditedReservation(reservationId, form) {
   const reservation = editableReservation(reservationId);
   if (!reservation) return;
   const roomId = form.elements.room.value;
@@ -601,84 +800,201 @@ async function saveEditedReservation(reservationId, form) {
   const startTime = form.elements.startTime.value;
   const endTime = form.elements.endTime.value;
   const guests = Number(form.elements.guests.value);
+  const observaciones = form.elements.observaciones.value.trim();
   const room = getRooms().find((candidate) => candidate.id === roomId);
-  if (!room || !reservation) {
-    setBookingMessage('El servicio o la reserva ya no existe.');
-    return;
-  }
-  if (room.estado !== 'disponible') {
-    setBookingMessage('El servicio está inactivo. Selecciona uno disponible para actualizar la reserva.');
-    return;
-  }
+  form.querySelectorAll('.invalid').forEach((field) => field.classList.remove('invalid'));
+  const fail = (message, ...fields) => {
+    fields.forEach((name) => form.elements[name]?.classList.add('invalid'));
+    setReservationsMessage(message);
+  };
 
-  if (!checkin || !checkout) {
-    setBookingMessage('Selecciona las fechas de entrada y salida.');
-    return;
-  }
+  if (!room) return fail('El servicio seleccionado ya no existe.', 'room');
+  if (room.estado !== 'disponible') return fail('El servicio está inactivo. Selecciona uno disponible para actualizar la reserva.', 'room');
+  if (!checkin || !checkout) return fail('Selecciona las fechas de la reserva.', 'checkin', 'checkout');
 
-  let reservationPayload;
-  let nights = 0;
+  let payload;
   if (modalidad === 'noches') {
-    nights = nightsBetween(checkin, checkout);
-    if (checkin < toISODate(new Date())) {
-      setBookingMessage('La fecha de entrada no puede ser anterior a hoy.');
-      return;
-    }
+    const nights = nightsBetween(checkin, checkout);
+    if (checkin < toISODate(new Date())) return fail('La fecha de entrada no puede ser anterior a hoy.', 'checkin');
     if (nights < room.duracion) {
-      setBookingMessage(`La salida debe ser posterior a la entrada y la estancia de al menos ${room.duracion} noche(s).`);
-      return;
+      return fail(`La salida debe ser posterior a la entrada y la estancia de al menos ${room.duracion} noche(s).`, 'checkout');
     }
-    reservationPayload = { servicioId: roomId, modalidad, entrada: checkin, salida: checkout, huespedes: guests, observaciones: reservation.observaciones || '' };
+    payload = { servicioId: roomId, modalidad, entrada: checkin, salida: checkout, huespedes: guests, observaciones };
   } else {
-    if (!startTime || !endTime) {
-      setBookingMessage('Selecciona la hora de inicio y fin de la cita.');
-      return;
+    if (!startTime || !endTime) return fail('Selecciona la hora de inicio y fin de la cita.', 'startTime', 'endTime');
+    const start = new Date(`${checkin}T${startTime}`);
+    const end = new Date(`${checkout}T${endTime}`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start <= new Date() || end <= start) {
+      return fail('La cita debe comenzar en el futuro y terminar después de su inicio.', 'startTime', 'endTime');
     }
-    const appointmentStart = new Date(`${checkin}T${startTime}`);
-    const appointmentEnd = new Date(`${checkout}T${endTime}`);
-    if (Number.isNaN(appointmentStart.getTime()) || Number.isNaN(appointmentEnd.getTime()) ||
-        appointmentStart <= new Date() || appointmentEnd <= appointmentStart) {
-      setBookingMessage('La cita debe comenzar en el futuro y terminar después de su inicio.');
-      return;
-    }
-    reservationPayload = {
-      servicioId: roomId,
-      modalidad,
-      inicio: appointmentStart.toISOString(),
-      fin: appointmentEnd.toISOString(),
-      huespedes: guests,
-      observaciones: reservation.observaciones || '',
-    };
+    payload = { servicioId: roomId, modalidad, inicio: start.toISOString(), fin: end.toISOString(), huespedes: guests, observaciones };
   }
 
   if (!Number.isInteger(guests) || guests < 1 || room.capacidad < guests) {
-    setBookingMessage(`${room.nombre} admite como máximo ${room.capacidad} huéspedes.`);
-    return;
+    return fail(`${room.nombre} admite como máximo ${room.capacidad} huéspedes.`, 'guests');
   }
-
-  const reservations = getReservations();
 
   const criteria = modalidad === 'noches'
     ? { modalidad, checkin, checkout }
-    : { modalidad, start: reservationPayload.inicio, end: reservationPayload.fin };
-  if (isRoomTaken(roomId, criteria, reservations, reservationId)) {
-    setBookingMessage('Esa habitación ya está ocupada en esas fechas.');
-    return;
+    : { modalidad, start: payload.inicio, end: payload.fin };
+  if (isRoomTaken(roomId, criteria, getReservations(), reservationId)) {
+    return fail('Ese servicio ya está reservado en ese horario. Elige otra fecha u hora.', 'checkin', 'checkout');
   }
 
+  setReservationsMessage('');
+  pendingUpdate = { id: reservationId, payload };
+  const schedule = reservationSchedule(payload);
+  fillDetailList(document.querySelector('#update-reservation-summary'), [
+    ['Servicio', room.nombre],
+    ['Fecha', schedule.fecha],
+    ['Hora', schedule.hora],
+    ['Huéspedes', String(guests)],
+    ['Observaciones', observaciones || '—'],
+  ]);
+  updateReservationDialog.showModal();
+}
+
+async function confirmReservationUpdate() {
+  if (!pendingUpdate) return;
+  const { id, payload } = pendingUpdate;
+  const button = document.querySelector('#confirm-reservation-update');
+  button.disabled = true;
   try {
-    const updated = await apiRequest(`/api/reservations/${encodeURIComponent(reservationId)}`, {
+    const result = await apiRequest(`/api/reservations/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      body: JSON.stringify(reservationPayload),
+      body: JSON.stringify(payload),
     });
-    apiState.reservations = reservations.map((candidate) => candidate.id === reservationId ? updated.reserva : candidate);
+    replaceReservation(result.reserva);
     editingReservationId = null;
-    setBookingMessage('Reserva actualizada.', true);
+    updateReservationDialog.close();
+    setReservationsMessage('Reserva actualizada correctamente.', true);
     renderRooms();
     renderReservations();
+    renderDashboard();
   } catch (error) {
-    displayApiError(error, setBookingMessage);
+    updateReservationDialog.close();
+    displayApiError(error, setReservationsMessage);
+    if (error.status === 409 || error.status === 404) await reloadAfterConflict();
+  } finally {
+    button.disabled = false;
   }
+}
+
+async function reloadAfterConflict() {
+  try {
+    await refreshApiData();
+  } catch (error) {
+    console.error('No se pudieron recargar las reservas.', error);
+  }
+  renderRooms();
+  renderReservations();
+  renderDashboard();
+}
+
+function fillDetailList(list, rows) {
+  list.replaceChildren(...rows.map(([label, value]) => {
+    const row = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    description.textContent = value;
+    row.append(term, description);
+    return row;
+  }));
+}
+
+async function openReservationDetail(id) {
+  let reservation = findReservation(id);
+  try {
+    reservation = (await apiRequest(`/api/reservations/${encodeURIComponent(id)}`)).reserva;
+  } catch (error) {
+    displayApiError(error, setReservationsMessage);
+    return;
+  }
+  const schedule = reservationSchedule(reservation);
+  const rows = [
+    ['Código', reservation.id.toUpperCase()],
+    ['Servicio', reservation.habitacion],
+    ['Tipo', schedule.tipo],
+    ['Fecha', schedule.fecha],
+    ['Hora', schedule.hora],
+    ['Huéspedes', String(reservation.huespedes)],
+    ['Observaciones', reservation.observaciones || '—'],
+    ['Total', formatMoney(reservation.total)],
+    ['Estado', STATE_LABELS[reservationStatus(reservation)]],
+    ['Usuario', reservation.correo],
+    ['Creada', formatDateTime(reservation.creadaEn)],
+  ];
+  if (reservation.canceladaEn) {
+    rows.push(['Cancelada', `${formatDateTime(reservation.canceladaEn)}${reservation.canceladaPor ? ` por ${reservation.canceladaPor}` : ''}`]);
+  }
+  fillDetailList(document.querySelector('#reservation-detail-list'), rows);
+  document.querySelector('#reservation-detail-title').textContent = `Reserva · ${reservation.habitacion}`;
+  reservationDetailDialog.showModal();
+}
+
+function askCancelReservation(id) {
+  const reservation = editableReservation(id);
+  if (!reservation) return;
+  pendingCancelId = id;
+  const schedule = reservationSchedule(reservation);
+  document.querySelector('#cancel-reservation-service').textContent = reservation.habitacion;
+  document.querySelector('#cancel-reservation-date').textContent = schedule.fecha;
+  document.querySelector('#cancel-reservation-time').textContent = schedule.hora;
+  cancelReservationDialog.showModal();
+}
+
+/** Cancelación lógica: la reserva queda como "cancelada" y libera el horario (HUS-09). */
+async function confirmCancelReservation() {
+  const id = pendingCancelId;
+  if (!id) return;
+  const button = document.querySelector('#confirm-reservation-cancel');
+  button.disabled = true;
+  try {
+    const result = await apiRequest(`/api/reservations/${encodeURIComponent(id)}/cancelar`, { method: 'PATCH' });
+    replaceReservation(result.reserva);
+    if (editingReservationId === id) editingReservationId = null;
+    cancelReservationDialog.close();
+    setReservationsMessage('Reserva cancelada. El horario quedó disponible para nuevas reservas.', true);
+    renderRooms();
+    renderReservations();
+    renderDashboard();
+  } catch (error) {
+    cancelReservationDialog.close();
+    displayApiError(error, setReservationsMessage);
+    if (error.status === 409 || error.status === 404) await reloadAfterConflict();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deleteReservationFromHistory(reservationId) {
+  if (!ownReservation(reservationId)) return;
+  try {
+    await apiRequest(`/api/reservations/${encodeURIComponent(reservationId)}`, { method: 'DELETE' });
+    apiState.reservations = getReservations().filter((reservation) => reservation.id !== reservationId);
+  } catch (error) {
+    displayApiError(error, setReservationsMessage);
+    return;
+  }
+  pendingDeleteId = null;
+  setReservationsMessage('Reserva eliminada del historial.', true);
+  renderRooms();
+  renderReservations();
+  renderDashboard();
+}
+
+function askDeleteConfirmation(reservationId) {
+  const reservation = ownReservation(reservationId);
+  if (!reservation) return;
+  if (isActiveReservation(reservation)) {
+    setReservationsMessage('Primero cancela la reserva para poder eliminarla del historial.');
+    return;
+  }
+  pendingDeleteId = reservationId;
+  editingReservationId = null;
+  setReservationsMessage('Confirma para eliminar la reserva del historial definitivamente.');
+  drawReservationList();
 }
 
 async function bookRoom(roomId) {
@@ -721,50 +1037,6 @@ async function bookRoom(roomId) {
   }
 }
 
-async function cancelReservation(reservationId) {
-  if (!ownReservation(reservationId)) return;
-  try {
-    await apiRequest(`/api/reservations/${encodeURIComponent(reservationId)}`, { method: 'DELETE' });
-    apiState.reservations = getReservations().filter((reservation) => reservation.id !== reservationId);
-  } catch (error) {
-    displayApiError(error, setBookingMessage);
-    return;
-  }
-
-  if (editingReservationId === reservationId) {
-    editingReservationId = null;
-  }
-
-  pendingDeleteId = null;
-  setBookingMessage('Reserva eliminada.', true);
-  renderRooms();
-  renderReservations();
-  renderDashboard();
-}
-
-function askDeleteConfirmation(reservationId) {
-  if (!ownReservation(reservationId)) return;
-  pendingDeleteId = reservationId;
-  editingReservationId = null;
-  setBookingMessage('Confirma para eliminar la reserva definitivamente.');
-  renderReservations();
-}
-
-async function deleteAllReservations() {
-  try {
-    await apiRequest('/api/reservations', { method: 'DELETE' });
-    apiState.reservations = getReservations().filter((reservation) => reservation.correo !== currentUser?.correo);
-    editingReservationId = null;
-    pendingDeleteId = null;
-    setBookingMessage('Se eliminaron todas tus reservas.', true);
-    renderRooms();
-    renderReservations();
-    renderDashboard();
-  } catch (error) {
-    displayApiError(error, setBookingMessage);
-  }
-}
-
 async function showBookingScreen(user) {
   currentUser = user;
   apiState.users = [user];
@@ -778,6 +1050,8 @@ async function showBookingScreen(user) {
   }
   editingReservationId = null;
   pendingDeleteId = null;
+  resetReservationFilters();
+  setReservationsMessage('');
   authScreen.classList.add('hidden');
   bookingScreen.classList.remove('hidden');
   bookingUserName.textContent = `Hola, ${user.nombre}`;
@@ -803,6 +1077,14 @@ function logout() {
   document.querySelector('#delete-user-dialog').close();
   closeServiceEditor();
   document.querySelector('#delete-service-dialog').close();
+  reservationDetailDialog.close();
+  updateReservationDialog.close();
+  cancelReservationDialog.close();
+  editingReservationId = null;
+  pendingDeleteId = null;
+  reservationPageItems = [];
+  reservationTotal = 0;
+  reservationRequestId += 1;
   editingUserEmail = null;
   deletingUserEmail = null;
   reservationList.replaceChildren();
@@ -900,39 +1182,33 @@ function bindEvents() {
   });
 
   reservationList.addEventListener('click', (event) => {
-    const deleteButton = event.target.closest('[data-delete]');
-    const confirmButton = event.target.closest('[data-confirm-delete]');
-    const abortButton = event.target.closest('[data-abort-delete]');
-    const editButton = event.target.closest('[data-edit]');
-    const discardButton = event.target.closest('[data-cancel-edit]');
-
-    if (deleteButton) {
-      askDeleteConfirmation(deleteButton.dataset.delete);
-    } else if (confirmButton) {
-      cancelReservation(confirmButton.dataset.confirmDelete);
-    } else if (abortButton) {
+    const button = event.target.closest('button');
+    if (!button) return;
+    const { detail, edit, cancelReservation, delete: remove, confirmDelete, abortDelete, cancelEdit } = button.dataset;
+    if (detail) {
+      openReservationDetail(detail);
+    } else if (edit) {
+      startEditing(edit);
+    } else if (cancelReservation) {
+      askCancelReservation(cancelReservation);
+    } else if (remove) {
+      askDeleteConfirmation(remove);
+    } else if (confirmDelete) {
+      deleteReservationFromHistory(confirmDelete);
+    } else if (abortDelete) {
       pendingDeleteId = null;
-      setBookingMessage('');
-      renderReservations();
-    } else if (editButton) {
-      startEditing(editButton.dataset.edit);
-    } else if (discardButton) {
+      setReservationsMessage('');
+      drawReservationList();
+    } else if (cancelEdit) {
       editingReservationId = null;
-      renderReservations();
+      setReservationsMessage('Edición descartada. No se guardaron cambios.');
+      drawReservationList();
     }
   });
 
-  clearReservationsButton.addEventListener('click', () => {
-    if (clearReservationsButton.dataset.confirming === 'true') {
-      clearReservationsButton.dataset.confirming = 'false';
-      clearReservationsButton.textContent = isAdministrator() ? 'Eliminar mis reservas' : 'Eliminar todas';
-      deleteAllReservations();
-      return;
-    }
-
-    clearReservationsButton.dataset.confirming = 'true';
-    clearReservationsButton.textContent = 'Pulsa otra vez para confirmar';
-    setBookingMessage('Vas a eliminar todas tus reservas.');
+  reservationList.addEventListener('change', (event) => {
+    const form = event.target.closest('.reservation-edit');
+    if (form && event.target.name === 'modalidad') toggleEditMode(form);
   });
 
   reservationList.addEventListener('submit', (event) => {
@@ -943,6 +1219,47 @@ function bindEvents() {
       saveEditedReservation(form.dataset.save, form);
     }
   });
+
+  bindReservationQueryEvents();
+}
+
+function bindReservationQueryEvents() {
+  const reload = () => {
+    reservationsPage = 1;
+    setReservationsMessage('');
+    renderReservations();
+  };
+  document.querySelector('#reservation-filters').addEventListener('submit', (event) => {
+    event.preventDefault();
+    reload();
+  });
+  reservationFilters.search.addEventListener('input', () => {
+    clearTimeout(reservationSearchTimer);
+    reservationSearchTimer = setTimeout(reload, 300);
+  });
+  [reservationFilters.status, reservationFilters.from, reservationFilters.to].forEach((input) => {
+    input.addEventListener('change', reload);
+  });
+  document.querySelector('#reservations-clear-filters').addEventListener('click', () => {
+    resetReservationFilters();
+    reload();
+  });
+  document.querySelector('#reservations-previous').addEventListener('click', () => {
+    reservationsPage = Math.max(1, reservationsPage - 1);
+    renderReservations();
+  });
+  document.querySelector('#reservations-next').addEventListener('click', () => {
+    reservationsPage += 1;
+    renderReservations();
+  });
+
+  document.querySelector('#close-reservation-detail').addEventListener('click', () => reservationDetailDialog.close());
+  document.querySelector('#abort-reservation-update').addEventListener('click', () => updateReservationDialog.close());
+  document.querySelector('#confirm-reservation-update').addEventListener('click', confirmReservationUpdate);
+  updateReservationDialog.addEventListener('close', () => { pendingUpdate = null; });
+  document.querySelector('#abort-reservation-cancel').addEventListener('click', () => cancelReservationDialog.close());
+  document.querySelector('#confirm-reservation-cancel').addEventListener('click', confirmCancelReservation);
+  cancelReservationDialog.addEventListener('close', () => { pendingCancelId = null; });
 }
 
 async function initializeSession() {
@@ -1017,20 +1334,16 @@ function navigateTo(page) {
   }
 }
 
-function reservationState(reservation) {
-  const status = String(reservation.estado || '').toLowerCase();
-  if (status === 'pendiente') return 'Pendiente';
-  if (status === 'cancelada') return 'Cancelada';
+function reservationStatus(reservation) {
+  const status = String(reservation.estado || 'confirmada').toLowerCase();
+  if (status === 'cancelada' || status === 'finalizada') return status;
+  const [, end] = reservationInterval(reservation);
+  if (end <= Date.now()) return 'finalizada';
+  return status === 'pendiente' ? 'pendiente' : 'confirmada';
+}
 
-  const end = reservation.modalidad === 'horario'
-    ? Date.parse(reservation.fin)
-    : Date.parse(`${reservation.salida}T00:00:00`);
-  const start = reservation.modalidad === 'horario'
-    ? Date.parse(reservation.inicio)
-    : Date.parse(`${reservation.entrada}T00:00:00`);
-  if (end <= Date.now()) return 'Finalizada';
-  if (status === 'confirmada') return 'Confirmada';
-  return start <= Date.now() ? 'En curso' : 'Próxima';
+function reservationState(reservation) {
+  return STATE_LABELS[reservationStatus(reservation)];
 }
 
 function renderDashboard() {
@@ -1043,7 +1356,10 @@ function renderDashboard() {
   document.querySelector('#stat-reservations-label').textContent = admin ? 'Reservas totales' : 'Mis reservas';
   const list = document.querySelector('#recent-reservations');
   list.replaceChildren();
-  const recent = reservations.slice().reverse().slice(0, 5);
+  const recent = reservations
+    .slice()
+    .sort((a, b) => String(b.creadaEn || '').localeCompare(String(a.creadaEn || '')))
+    .slice(0, 5);
   if (!recent.length) {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
@@ -1053,14 +1369,14 @@ function renderDashboard() {
   recent.forEach((reservation) => {
     const card = document.createElement('article');
     const state = reservationState(reservation);
-    card.className = `reservation-card state-${state.toLowerCase().replace(' ', '-')}`;
+    card.className = `reservation-card state-${reservationStatus(reservation)}`;
     const description = document.createElement('div');
     const heading = document.createElement('h4');
     heading.textContent = reservation.habitacion;
     const details = document.createElement('p');
     details.textContent = `${reservation.modalidad === 'horario'
       ? `${new Date(reservation.inicio).toLocaleString('es-ES')} → ${new Date(reservation.fin).toLocaleString('es-ES')}`
-      : `${formatDate(reservation.entrada)} → ${formatDate(reservation.salida)}`} · $${reservation.total}${admin ? ` · ${reservation.correo}` : ''}`;
+      : `${formatDate(reservation.entrada)} → ${formatDate(reservation.salida)}`} · ${formatMoney(reservation.total)}${admin ? ` · ${reservation.correo}` : ''}`;
     const badge = document.createElement('span');
     badge.className = 'reservation-state';
     badge.textContent = state;
@@ -1177,7 +1493,7 @@ async function saveManagedUser(event) {
   if (existing?.correo === currentUser.correo && (role !== existing.rol || status !== 'activo')) {
     setUsersMessage('No puedes cambiar tu propio rol ni estado.'); return;
   }
-  const payload = { nombre: name, correo: email, rol, estado };
+  const payload = { nombre: name, correo: email, rol: role, estado: status };
   if (password) payload.password = password;
   if (!existing && !password) { setError('user-password', 'La contraseña es obligatoria al crear.'); return; }
   try {
