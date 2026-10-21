@@ -62,9 +62,11 @@ caracteres) y `ADMIN_SETUP_KEY` en `.env`. No compartas ni subas ese archivo.
 
 La página está conectada a la API cuando se sirve desde FastAPI. GitHub Pages
 solo aloja archivos estáticos, por lo que no puede ejecutar esta API ni acceder
-a MongoDB. Para publicar la interfaz hay que desplegar también el backend,
-definir `window.HOTEL_API_BASE_URL` con su URL HTTPS y configurar `CORS_ORIGINS`
-con los dominios autorizados.
+a MongoDB. El workflow `Deploy GitHub Pages` publica `frontend/`; el origen de
+publicación de Pages debe estar configurado como **GitHub Actions**. Para usar
+la interfaz publicada hay que desplegar también el backend, definir
+`window.HOTEL_API_BASE_URL` con su URL HTTPS y configurar `CORS_ORIGINS` con los
+dominios autorizados.
 
 ## Rutas principales
 
