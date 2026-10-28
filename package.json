@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": ".venv\\Scripts\\python.exe -m uvicorn backend.app:app --reload --log-level warning",
-    "test:ui": "playwright test qa/tests/ui-login.spec.js"
+    "test:ui": "playwright test qa/ui-login.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

@@ -4,7 +4,7 @@ const VIEWPORTS = [320, 390, 768, 1024, 1440];
 
 for (const width of VIEWPORTS) {
   test(`login page stays within the viewport at ${width}px`, async ({ page }) => {
-    const fileUrl = 'file://' + require('path').resolve(__dirname, '../../frontend/index.html');
+    const fileUrl = 'file://' + require('path').resolve(__dirname, '../frontend/index.html');
     await page.goto(fileUrl);
     await page.setViewportSize({ width, height: 960 });
 
