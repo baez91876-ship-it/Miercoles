@@ -78,11 +78,11 @@ Image = Annotated[str | None, AfterValidator(validate_image)]
 
 
 class APIModel(BaseModel):
+
     model_config = ConfigDict(extra="forbid")
 
 
 class UpdateModel(APIModel):
-    """Actualización parcial: los campos enviados no pueden ser null salvo los indicados."""
 
     nullable_fields: ClassVar[frozenset[str]] = frozenset()
 
@@ -101,6 +101,7 @@ class UpdateModel(APIModel):
 
 
 class RegisterInput(APIModel):
+
     nombre: Name = Field(validation_alias=AliasChoices("nombre", "name"))
     correo: Email = Field(validation_alias=AliasChoices("correo", "email"))
     telefono: Phone = Field(default="", validation_alias=AliasChoices("telefono", "phone"))
@@ -108,20 +109,24 @@ class RegisterInput(APIModel):
 
 
 class LoginInput(APIModel):
+
     correo: Email = Field(validation_alias=AliasChoices("correo", "email"))
     password: str = Field(min_length=1, max_length=256)
 
 
 class AdminBootstrapInput(RegisterInput):
+
     setup_key: str = Field(min_length=1, max_length=256)
 
 
 class UserCreateInput(RegisterInput):
+
     rol: Role = "usuario"
     estado: UserStatus = "activo"
 
 
 class UserUpdateInput(UpdateModel):
+
     nombre: Name | None = None
     correo: Email | None = None
     telefono: Phone | None = None
@@ -131,6 +136,7 @@ class UserUpdateInput(UpdateModel):
 
 
 class ServiceInput(APIModel):
+
     nombre: Name
     detalle: Detail
     precio: Price
@@ -142,6 +148,7 @@ class ServiceInput(APIModel):
 
 
 class ServiceUpdateInput(UpdateModel):
+
     nullable_fields = frozenset({"imagen"})
 
     nombre: Name | None = None
@@ -155,6 +162,7 @@ class ServiceUpdateInput(UpdateModel):
 
 
 class ReservationInput(APIModel):
+
     servicioId: str = Field(min_length=1, max_length=64)
     modalidad: Literal["noches", "horario"]
     entrada: date | None = None

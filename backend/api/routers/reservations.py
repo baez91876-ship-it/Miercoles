@@ -28,7 +28,6 @@ def as_utc(value: datetime) -> datetime:
 
 
 def stored_interval(reservation: Document) -> tuple[datetime, datetime] | None:
-    """Intervalo de la reserva sin importar su estado (sirve para listar y filtrar)."""
     if reservation.get("modalidad", "noches") == "horario":
         start = reservation.get("inicio")
         end = reservation.get("fin")
@@ -55,14 +54,12 @@ def stored_interval(reservation: Document) -> tuple[datetime, datetime] | None:
 
 
 def reservation_interval(reservation: Document) -> tuple[datetime, datetime] | None:
-    """Intervalo que bloquea disponibilidad. Las reservas canceladas liberan el horario."""
     if reservation.get("estado", "confirmada") == "cancelada":
         return None
     return stored_interval(reservation)
 
 
 def effective_state(reservation: Document, now: datetime | None = None) -> str:
-    """Estado mostrado al usuario: cancelada se respeta; si ya terminó, es finalizada."""
     stored = reservation.get("estado", "confirmada")
     if stored == "cancelada":
         return "cancelada"
@@ -201,7 +198,6 @@ def matches_search(document: Document, search: str) -> bool:
 
 
 def local_dates(document: Document, offset: timedelta) -> tuple[date, date] | None:
-    """Días (en la zona horaria del usuario) que ocupa la reserva."""
     if document.get("modalidad", "noches") == "horario":
         interval = stored_interval(document)
         if interval is None:
@@ -356,7 +352,6 @@ def update_reservation(
 
 @router.patch("/{reservation_id}/cancelar")
 def cancel_reservation(reservation_id: str, user: CurrentUser, database: Database) -> dict[str, Any]:
-    """Cancelación lógica: conserva la reserva en el historial y libera el horario."""
     existing = get_reservation_for(database, reservation_id, user, "cancelar")
     state = effective_state(existing)
     if state == "cancelada":

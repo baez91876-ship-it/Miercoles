@@ -18,6 +18,7 @@ from backend.api.schemas import (
 
 
 class SchemaValidationTests(unittest.TestCase):
+
     def test_email_is_trimmed_and_case_normalized(self) -> None:
         self.assertEqual(normalize_email("  USER@Example.com "), "user@example.com")
 
