@@ -241,7 +241,6 @@ async function handleLoginSubmit(event) {
   }
 }
 
-/* Reservas */
 
 let currentUser = null;
 let editingReservationId = null;
@@ -478,7 +477,6 @@ async function checkRoomAvailability(roomId, criteria, card) {
   }
 }
 
-/* HUS-07 Consultar · HUS-08 Actualizar · HUS-09 Cancelar */
 
 const STATE_LABELS = {
   confirmada: 'Confirmada',
@@ -514,7 +512,6 @@ function timeForInput(value) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-/** Fecha, hora y tipo legibles para una reserva (o para un payload de edición). */
 function reservationSchedule(reservation) {
   if (reservation.modalidad === 'horario') {
     const startDay = formatShortDate(reservation.inicio);
@@ -795,7 +792,6 @@ function ownReservation(id) {
   return reservation;
 }
 
-/** Valida el formulario de edición y, si todo está bien, pide confirmación (HUS-08). */
 function saveEditedReservation(reservationId, form) {
   const reservation = editableReservation(reservationId);
   if (!reservation) return;
@@ -950,7 +946,6 @@ function askCancelReservation(id) {
   cancelReservationDialog.showModal();
 }
 
-/** Cancelación lógica: la reserva queda como "cancelada" y libera el horario (HUS-09). */
 async function confirmCancelReservation() {
   const id = pendingCancelId;
   if (!id) return;

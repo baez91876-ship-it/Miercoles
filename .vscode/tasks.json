@@ -31,7 +31,9 @@
         "-m",
         "uvicorn",
         "backend.app:app",
-        "--reload"
+        "--reload",
+        "--log-level",
+        "warning"
       ],
       "isBackground": true,
       "problemMatcher": []

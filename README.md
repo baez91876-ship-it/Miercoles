@@ -16,7 +16,10 @@ reservas persistidas en MongoDB.
 2. En VS Code ejecuta la tarea **Crear configuración local segura**. Crea
    `.env` con secretos aleatorios solo si aún no existe; no reemplaza una
    configuración existente. `.env` está excluido de Git.
-3. Ejecuta la tarea **Iniciar API Hotel Clara**.
+3. Desde la raíz del proyecto, ejecuta `npm run dev` o la tarea de VS Code
+   **Iniciar API Hotel Clara**. El comando de npm usa el entorno virtual
+   `.venv`; si aún no existe o no tiene las dependencias, ejecuta la tarea
+   **Crear entorno virtual e instalar dependencias**.
 4. Abre `http://localhost:8000/`. La documentación de la API está en
    `http://localhost:8000/docs` y `http://localhost:8000/health` verifica la
    conexión a la base `hotel`.
@@ -26,14 +29,15 @@ Para crear el primer administrador, abre `/docs`, ejecuta
 contraseña y el valor local de `ADMIN_SETUP_KEY` en `.env`. Después inicia
 sesión desde la página. No hay cuenta ni contraseña de demostración.
 
-Si no usas las tareas de VS Code, crea un entorno virtual e instala las
-dependencias desde la raíz:
+Si no usas las tareas de VS Code ni `npm run dev`, puedes iniciar el servidor
+manualmente desde la raíz después de crear el entorno virtual e instalar las
+dependencias:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python -m uvicorn backend.app:app --reload
+python -m uvicorn backend.app:app --reload --log-level warning
 ```
 
 Antes de ejecutar el servidor manualmente, configura `JWT_SECRET` (mínimo 32

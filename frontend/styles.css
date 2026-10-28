@@ -41,14 +41,12 @@ textarea:focus-visible { outline: 2px solid var(--primary); }
 .service-card .room-detail { white-space: pre-wrap; }
 .field input[type="file"] { min-width: 0; font-size: 12px; }
 
-/* Layout */
 .app-shell {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   min-height: 100vh;
 }
 
-/* Brand panel */
 .brand-panel {
   position: relative;
   display: flex;
@@ -145,7 +143,6 @@ h1 em {
   letter-spacing: 0.12em;
 }
 
-/* Auth panel */
 .auth-panel {
   display: flex;
   flex-direction: column;
@@ -188,7 +185,6 @@ h1 em {
   color: var(--muted);
 }
 
-/* Tabs */
 .auth-tabs {
   display: flex;
   gap: 26px;
@@ -221,7 +217,6 @@ h1 em {
   background: var(--primary);
 }
 
-/* Messages and forms */
 .global-message {
   min-height: 0;
   margin-bottom: 0;
@@ -394,7 +389,6 @@ h1 em {
   display: none !important;
 }
 
-/* Pantalla de reservas */
 .booking {
   width: min(100%, 1100px);
   margin: 0 auto;
@@ -848,7 +842,6 @@ dialog::backdrop { background: rgba(30, 41, 59, 0.5); }
 .password-field input { padding-right: 44px; }
 .reservation-card > div { min-width: 0; overflow-wrap: anywhere; }
 
-/* HUS-07 · HUS-08 · HUS-09 — Consultar, actualizar y cancelar reservas */
 .reservation-filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 18px; align-items: end; margin: 20px 0 16px; }
 .reservation-filters input { width: 100%; min-width: 0; padding: 11px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; }
 .reservation-filters input:focus { outline: none; border-color: var(--primary); }
@@ -883,14 +876,37 @@ dialog::backdrop { background: rgba(30, 41, 59, 0.5); }
 .danger-button { padding: 10px 16px; border: 1px solid var(--error); background: var(--error); color: var(--surface); font-size: 12px; font-weight: 700; cursor: pointer; }
 .danger-button:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .app-shell {
     display: block;
   }
 
   .brand-panel {
-    min-height: 330px;
-    padding: 30px 26px;
+    min-height: 260px;
+    padding: 30px 20px;
+  }
+
+  .auth-panel {
+    min-height: auto;
+  }
+
+  .auth-content {
+    width: min(100%, 460px);
+    padding: 30px 20px 42px;
+  }
+
+  .auth-heading h2 {
+    font-size: clamp(28px, 8vw, 36px);
+  }
+
+  .auth-topline,
+  .auth-footer {
+    padding: 18px 20px;
+  }
+
+  .field input,
+  .password-field input {
+    font-size: 16px;
   }
 
   .brand-mark {

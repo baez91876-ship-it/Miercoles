@@ -20,6 +20,7 @@ from backend.api.settings import MONGODB_URI
     "Activa RUN_MONGO_INTEGRATION=1 para probar MongoDB local.",
 )
 class MongoApiIntegrationTests(unittest.TestCase):
+
     def setUp(self) -> None:
         self.database_name = f"hotel_test_{uuid.uuid4().hex}"
         self.patches = ExitStack()
@@ -125,7 +126,6 @@ class MongoApiIntegrationTests(unittest.TestCase):
         detail = self.client.get(f"/api/reservations/{reservation_id}", headers=client_headers)
         self.assertEqual(detail.json()["reserva"]["observaciones"], "Estancia editada")
 
-        # HUS-09: la cancelación se guarda en MongoDB, conserva la reserva y libera el horario.
         cancelled = self.client.patch(
             f"/api/reservations/{reservation_id}/cancelar", headers=client_headers
         )

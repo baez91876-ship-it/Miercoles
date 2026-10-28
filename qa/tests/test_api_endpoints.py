@@ -15,6 +15,7 @@ from backend.api.main import app
 
 
 class FakeCursor:
+
     def __init__(self, documents: list[dict[str, Any]]) -> None:
         self.documents = documents
 
@@ -35,6 +36,7 @@ class FakeCursor:
 
 
 class FakeCollection:
+
     def __init__(self, unique_field: str | None = None) -> None:
         self.documents: list[dict[str, Any]] = []
         self.unique_field = unique_field
@@ -117,6 +119,7 @@ class FakeCollection:
 
 
 class FakeDatabase:
+
     def __init__(self) -> None:
         self.collections: dict[str, FakeCollection] = {
             "usuarios": FakeCollection("correo"),
@@ -129,6 +132,7 @@ class FakeDatabase:
 
 
 class ApiEndpointTests(unittest.TestCase):
+
     def setUp(self) -> None:
         self.database = FakeDatabase()
         self.previous_overrides = app.dependency_overrides.copy()
@@ -600,7 +604,6 @@ class ApiEndpointTests(unittest.TestCase):
             409,
         )
 
-    # --- HUS-07, HUS-08 y HUS-09 -------------------------------------------------
 
     def login_headers(self, email: str) -> dict[str, str]:
         login = self.client.post(
@@ -628,7 +631,6 @@ class ApiEndpointTests(unittest.TestCase):
         appointment = self.book(user_headers, suite["id"], modalidad="horario",
                                 inicio="2030-07-01T15:00:00Z", fin="2030-07-01T16:00:00Z")
         foreign = self.book(other_headers, room["id"], entrada="2030-05-01", salida="2030-05-03")
-        # Una reserva ya terminada (se inserta directo porque la API no acepta fechas pasadas).
         self.database["reservas"].insert_one({
             "id": "past-1", "servicioId": suite["id"], "servicio": "Suite Azul",
             "correo": user["correo"], "modalidad": "noches", "entrada": "2020-01-01",
@@ -638,7 +640,7 @@ class ApiEndpointTests(unittest.TestCase):
         own = self.client.get("/api/reservations", headers=user_headers).json()
         self.assertEqual(own["total"], 4)
         self.assertNotIn(foreign["id"], [item["id"] for item in own["items"]])
-        self.assertEqual(own["items"][0]["id"], "past-1")  # ordenadas por fecha de inicio
+        self.assertEqual(own["items"][0]["id"], "past-1")
         self.assertEqual(own["items"][0]["estado"], "finalizada")
         self.assertEqual(
             self.client.get("/api/reservations", headers=self.admin_headers).json()["total"], 5
@@ -650,14 +652,13 @@ class ApiEndpointTests(unittest.TestCase):
             return [item["id"] for item in response.json()["items"]]
 
         self.assertEqual(ids(q="verde"), [second["id"]])
-        self.assertEqual(ids(q="CUNA bebe"), [second["id"]])  # sin tildes ni mayúsculas
+        self.assertEqual(ids(q="CUNA bebe"), [second["id"]])
         self.assertEqual(ids(q=first["id"][:8]), [first["id"]])
         self.assertEqual(ids(estado="finalizada"), ["past-1"])
         self.assertEqual(ids(estado="confirmada"), [first["id"], second["id"], appointment["id"]])
         self.assertEqual(ids(desde="2030-06-01", hasta="2030-06-30"), [second["id"]])
-        self.assertEqual(ids(desde="2030-05-03", hasta="2030-05-03"), [first["id"]])  # día de salida
+        self.assertEqual(ids(desde="2030-05-03", hasta="2030-05-03"), [first["id"]])
         self.assertEqual(ids(desde="2030-06-11"), [second["id"], appointment["id"]])
-        # Una cita a las 23:30 de Bogotá cae al día siguiente en UTC; el filtro usa la zona del usuario.
         late = self.book(user_headers, room["id"], modalidad="horario",
                          inicio="2030-08-02T04:30:00Z", fin="2030-08-02T05:00:00Z")
         self.assertEqual(ids(desde="2030-08-01", hasta="2030-08-01", utc_offset=-300), [late["id"]])
@@ -711,7 +712,6 @@ class ApiEndpointTests(unittest.TestCase):
         self.assertEqual(stored["entrada"], "2030-04-12")
         self.assertIn("actualizadaEn", stored)
 
-        # T11: horario no disponible al editar
         conflict = self.client.put(
             f"/api/reservations/{mine['id']}", headers=user_headers,
             json={"servicioId": service["id"], "modalidad": "noches",
@@ -720,7 +720,6 @@ class ApiEndpointTests(unittest.TestCase):
         self.assertEqual(conflict.status_code, 409)
         self.assertEqual(self.database["reservas"].find_one({"id": mine["id"]})["entrada"], "2030-04-12")
 
-        # Otro cliente no puede editarla
         self.assertEqual(
             self.client.put(f"/api/reservations/{mine['id']}", headers=other_headers,
                             json={"servicioId": service["id"], "modalidad": "noches",
@@ -728,7 +727,6 @@ class ApiEndpointTests(unittest.TestCase):
             403,
         )
 
-        # T06: no se modifican reservas canceladas
         self.assertEqual(
             self.client.patch(f"/api/reservations/{mine['id']}/cancelar", headers=user_headers).status_code, 200
         )
@@ -754,7 +752,6 @@ class ApiEndpointTests(unittest.TestCase):
             409,
         )
 
-        # T04: solo el propietario (o un administrador) puede cancelar
         self.assertEqual(
             self.client.patch(f"/api/reservations/{mine['id']}/cancelar", headers=other_headers).status_code, 403
         )
@@ -762,7 +759,6 @@ class ApiEndpointTests(unittest.TestCase):
             self.client.patch("/api/reservations/no-existe/cancelar", headers=user_headers).status_code, 404
         )
 
-        # T05: el estado cambia a cancelada y la reserva se conserva
         cancelled = self.client.patch(f"/api/reservations/{mine['id']}/cancelar", headers=user_headers)
         self.assertEqual(cancelled.status_code, 200)
         body = cancelled.json()["reserva"]
@@ -774,12 +770,10 @@ class ApiEndpointTests(unittest.TestCase):
                                  params={"estado": "cancelada"}).json()["items"]
         self.assertEqual([item["id"] for item in listed], [mine["id"]])
 
-        # T10: cancelar dos veces devuelve conflicto
         again = self.client.patch(f"/api/reservations/{mine['id']}/cancelar", headers=user_headers)
         self.assertEqual(again.status_code, 409)
         self.assertEqual(again.json()["detail"], "La reserva ya está cancelada.")
 
-        # T06: el horario queda libre para otra persona
         availability = self.client.get(
             "/api/reservations/availability", headers=other_headers,
             params={"servicio_id": service["id"], "modalidad": "noches"} | stay,
@@ -787,14 +781,12 @@ class ApiEndpointTests(unittest.TestCase):
         self.assertEqual(availability.status_code, 200)
         rebooked = self.book(other_headers, service["id"], **stay)
 
-        # Un administrador puede cancelar reservas de clientes
         admin_cancel = self.client.patch(
             f"/api/reservations/{rebooked['id']}/cancelar", headers=self.admin_headers
         )
         self.assertEqual(admin_cancel.status_code, 200)
         self.assertEqual(admin_cancel.json()["reserva"]["canceladaPor"], "admin@example.com")
 
-        # Una reserva finalizada no se puede cancelar
         self.database["reservas"].insert_one({
             "id": "past-1", "servicioId": service["id"], "servicio": "Suite",
             "correo": user["correo"], "modalidad": "noches", "entrada": "2020-01-01",

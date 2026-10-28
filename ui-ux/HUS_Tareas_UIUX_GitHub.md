@@ -78,7 +78,7 @@ la página publicada en GitHub Pages. En cada ejecución: **35 aprobadas, 2 fall
 | Eliminar todas las reservas propias sin borrar las de otra cuenta | ✅ |
 | Recursos, teléfono, teclado, colores de éxito/error y token de paleta informativa | ✅ |
 | Login y reservas sin desbordamiento a 320, 390, 1024 y 1440 px | ✅ |
-| Login sin desbordamiento a 768 px | Falló: el contenido ocupa 790 px; no se continuó con reservas a ese ancho |
+| Login sin desbordamiento a 768 px | ✅ |
 
 En aquella ejecución, las pruebas estaban en `qa/tests/` y se repetían con `npm test`.
 Los archivos de esa suite aparecen eliminados en la copia de trabajo actual.
@@ -226,7 +226,7 @@ Este documento descompone las 9 Historias de Usuario (HUS) del proyecto Full Sta
 - Utilizar azul para acciones principales (solo al pasar el cursor; el fondo normal es oscuro).
 - Mantener etiquetas visibles. ✅
 - Mostrar mensajes de validación debajo del campo correspondiente. ✅
-- Indicar claramente los campos obligatorios.
+- Indicar claramente los campos obligatorios ✅ (etiquetas con `*` y `required` en acceso y registro).
 
 ---
 
